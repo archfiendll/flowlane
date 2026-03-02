@@ -18,7 +18,7 @@
 - [x] JWT authentication middleware
 - [x] Protected test route
 - [x] Role-based access control (admin / employee)
-- [ ] Password strength validation improvement
+- [x] Password strength validation improvement
 - [ ] Token expiration handling
 - [ ] Logout strategy (token invalidation discussion)
 

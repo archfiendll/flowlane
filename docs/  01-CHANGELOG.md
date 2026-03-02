@@ -30,3 +30,9 @@
 - Added protected route: GET /auth/me
 - Added admin-only test route: GET /admin/ping
 - Converted role field to Prisma enum
+
+### Security
+- Strengthened password policy for registration using Zod:
+  - min 10 chars, max 72
+  - requires lowercase, uppercase, number, special character
+- Normalized auth emails (trim + lowercase) in validators

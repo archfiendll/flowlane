@@ -198,6 +198,11 @@ Routes → Controllers → Services → Prisma
 - Centralized validation formatting
 - Reusable validation modules
 
+### Password Policy (Register)
+- Enforced at API boundary (Zod)
+- Rules: min 10, max 72, uppercase, lowercase, number, special char
+- Login validation remains minimal to avoid blocking existing users
+
 ---
 
 ## 7. Error Handling Strategy
