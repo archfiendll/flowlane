@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 const { JWT_SECRET } = require("../config/jwt");
 
-// Attaches req.user = { id, email, role }
 async function requireAuth(req, res, next) {
   try {
     const header = req.headers.authorization || "";
@@ -15,7 +14,7 @@ async function requireAuth(req, res, next) {
     let payload;
     try {
       payload = jwt.verify(token, JWT_SECRET);
-    } catch (e) {
+    } catch {
       return res.status(401).json({ message: "Invalid or expired token" });
     }
 
