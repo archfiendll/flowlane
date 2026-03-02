@@ -8,7 +8,9 @@ const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
-app.use(helmet());
+const adminRoutes = require("./routes/admin.routes");
+
+app.use("/admin", adminRoutes);app.use(helmet());
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
