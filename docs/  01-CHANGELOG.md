@@ -22,3 +22,11 @@
 - Implemented JWT token generation
 - Added Zod validation layer
 - Added centralized error handler
+
+
+### Authorization & Security
+- Implemented JWT authentication middleware (requireAuth)
+- Implemented role-based access control middleware (requireRole)
+- Added protected route: GET /auth/me
+- Added admin-only test route: GET /admin/ping
+- Converted role field to Prisma enum

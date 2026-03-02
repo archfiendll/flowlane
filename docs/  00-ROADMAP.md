@@ -15,9 +15,9 @@
 ---
 
 ## Phase 1 – Security & Protection
-- [ ] JWT authentication middleware
-- [ ] Protected test route
-- [ ] Role-based access control (admin / employee)
+- [x] JWT authentication middleware
+- [x] Protected test route
+- [x] Role-based access control (admin / employee)
 - [ ] Password strength validation improvement
 - [ ] Token expiration handling
 - [ ] Logout strategy (token invalidation discussion)
