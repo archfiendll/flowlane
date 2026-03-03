@@ -7,7 +7,7 @@ async function listUsers() {
       email: true,
       role: true,
       createdAt: true,
-      updatedAt: true
+      updatedAt: true,
     },
     orderBy: { id: 'asc' },
   });

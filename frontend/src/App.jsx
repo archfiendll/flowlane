@@ -5,12 +5,16 @@ import MainLayout from "./layouts/MainLayout";
 import Login from "./pages/Login.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Employees from "./pages/Employees.jsx";
+import Register from "./pages/Register.jsx";
+
 
 export default function App() {
   return (
     <Routes>
       {/* Public */}
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+
 
       {/* Protected + Layout */}
       <Route

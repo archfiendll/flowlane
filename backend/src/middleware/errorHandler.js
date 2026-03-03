@@ -1,12 +1,12 @@
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
   const status = err.status || 500;
 
   // Avoid leaking internals in production
   const payload = {
-    message: err.message || "Internal server error",
+    message: err.message || 'Internal server error',
   };
 
-  if (process.env.NODE_ENV !== "production" && err.stack) {
+  if (process.env.NODE_ENV !== 'production' && err.stack) {
     payload.stack = err.stack;
   }
 

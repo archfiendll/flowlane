@@ -2,25 +2,35 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api/client";
 
-export default function Login() {
+const passwordRules = [
+  { label: "At least 10 characters", test: (p) => p.length >= 10 },
+  { label: "One uppercase letter", test: (p) => /[A-Z]/.test(p) },
+  { label: "One lowercase letter", test: (p) => /[a-z]/.test(p) },
+  { label: "One number", test: (p) => /[0-9]/.test(p) },
+  { label: "One special character", test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+export default function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showRules, setShowRules] = useState(false);
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
+      await api.post("/auth/register", { email, password });
+      // Auto-login after register
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("accessToken", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password.");
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -58,9 +68,11 @@ export default function Login() {
           <div style={{ backgroundColor: "#003580", padding: "28px 32px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
               <div style={{
-                width: 40, height: 40, backgroundColor: "#1d6fc4",
-                borderRadius: 10, display: "flex", alignItems: "center",
-                justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18,
+                width: 40, height: 40,
+                backgroundColor: "#1d6fc4",
+                borderRadius: 10,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontWeight: 700, fontSize: 18,
               }}>F</div>
               <span style={{ color: "#fff", fontWeight: 700, fontSize: 20 }}>Flowlane</span>
             </div>
@@ -72,10 +84,10 @@ export default function Login() {
           {/* Form body */}
           <div style={{ padding: "32px 32px 24px" }}>
             <h1 style={{ fontSize: 22, fontWeight: 700, color: "#1e293b", marginBottom: 4 }}>
-              Sign in
+              Create account
             </h1>
             <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 28 }}>
-              Enter your credentials to continue
+              Fill in your details to get started
             </p>
 
             <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -96,39 +108,47 @@ export default function Login() {
 
               <div>
                 <label style={labelStyle}>Password</label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    required
-                    style={{ ...inputStyle, paddingRight: 44 }}
-                    onFocus={e => e.target.style.borderColor = "#1d6fc4"}
-                    onBlur={e => e.target.style.borderColor = "#cbd5e1"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(v => !v)}
-                    style={{
-                      position: "absolute", right: 12, top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none", border: "none",
-                      cursor: "pointer", color: "#94a3b8",
-                      padding: 0, fontSize: 16, lineHeight: 1,
-                    }}
-                    title={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? "🙈" : "👁️"}
-                  </button>
-                </div>
+                <input
+                  type="password"
+                  placeholder="••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  style={inputStyle}
+                  onFocus={e => {
+                    e.target.style.borderColor = "#1d6fc4";
+                    setShowRules(true);
+                  }}
+                  onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+                />
+
+                {/* Password rules — shown when focused */}
+                {showRules && (
+                  <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>
+                    {passwordRules.map(rule => {
+                      const passed = rule.test(password);
+                      return (
+                        <div key={rule.label} style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          fontSize: 12,
+                          color: passed ? "#16a34a" : "#94a3b8",
+                        }}>
+                          <span style={{ fontSize: 14 }}>{passed ? "✓" : "○"}</span>
+                          {rule.label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {error && (
                 <div style={{
-                  padding: "10px 14px", backgroundColor: "#fef2f2",
-                  border: "1px solid #fecaca", borderRadius: 8,
+                  padding: "10px 14px",
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  borderRadius: 8,
                   color: "#b91c1c", fontSize: 13,
                 }}>
                   {error}
@@ -141,28 +161,33 @@ export default function Login() {
                 style={{
                   width: "100%", padding: "12px",
                   backgroundColor: loading ? "#93c5fd" : "#1d6fc4",
-                  color: "#fff", border: "none", borderRadius: 8,
-                  fontSize: 14, fontWeight: 600,
-                  cursor: loading ? "not-allowed" : "pointer",
+                  color: "#fff", border: "none",
+                  borderRadius: 8, fontSize: 14,
+                  fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
                   transition: "background-color 0.15s",
                 }}
                 onMouseEnter={e => { if (!loading) e.target.style.backgroundColor = "#1559a0"; }}
                 onMouseLeave={e => { if (!loading) e.target.style.backgroundColor = "#1d6fc4"; }}
               >
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? "Creating account..." : "Create account"}
               </button>
             </form>
           </div>
 
           {/* Footer */}
           <div style={{
-            padding: "16px 32px", backgroundColor: "#f8fafc",
-            borderTop: "1px solid #e2e8f0", textAlign: "center",
+            padding: "16px 32px",
+            backgroundColor: "#f8fafc",
+            borderTop: "1px solid #e2e8f0",
+            textAlign: "center",
           }}>
             <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
-              Don't have an account?{" "}
-              <Link to="/register" style={{ color: "#1d6fc4", fontWeight: 600, textDecoration: "none" }}>
-                Create one
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                style={{ color: "#1d6fc4", fontWeight: 600, textDecoration: "none" }}
+              >
+                Sign in
               </Link>
             </p>
           </div>

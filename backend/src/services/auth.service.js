@@ -1,12 +1,12 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const prisma = require("../config/prisma");
-const { JWT_SECRET, JWT_EXPIRES_IN } = require("../config/jwt");
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const prisma = require('../config/prisma');
+const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/jwt');
 
 async function register({ email, password, role }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    const err = new Error("Email already in use");
+    const err = new Error('Email already in use');
     err.status = 409;
     throw err;
   }
@@ -28,23 +28,21 @@ async function register({ email, password, role }) {
 async function login({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    const err = new Error("Invalid credentials");
+    const err = new Error('Invalid credentials');
     err.status = 401;
     throw err;
   }
 
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) {
-    const err = new Error("Invalid credentials");
+    const err = new Error('Invalid credentials');
     err.status = 401;
     throw err;
   }
 
-  const token = jwt.sign(
-    { sub: user.id, role: user.role },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  const token = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRES_IN,
+  });
 
   return {
     token,
