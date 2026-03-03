@@ -1,11 +1,30 @@
 # Flowlane – Unified Roadmap
-### Bachelor Project · CV Piece · Commercial SaaS Base
+### Bachelor Project · CV Piece · Commercial SaaS Base · Maersk Interview Prep
 
-**Goal:** Build a multi-tenant HR Operations SaaS backend using production-grade engineering
-practices, cloud deployment, and scalable architecture.
+**Goal:** Build a multi-tenant HR Operations SaaS (backend + frontend) using production-grade
+engineering practices, cloud deployment, and scalable architecture.
 
-**Author:** Illia Savytskyi  
+**Author:** Illia Savytskyi
 **Stack:** Node.js · Express · PostgreSQL · Prisma · JWT · Zod · bcrypt · Helmet · React · Docker · Azure
+
+---
+
+## ⚡ MAERSK INTERVIEW FAST TRACK
+> **Read this first.** If the interview is in less than 2 weeks, do Phase 0 → Phase F1 → Phase F2
+> before anything else. The backend phases can wait. The frontend cannot.
+
+### What Maersk will actually test
+- JavaScript fundamentals (written or verbal)
+- React component thinking — state, props, effects
+- How you consume a REST API from the frontend
+- CSS layout — flexbox, responsive design
+- How you communicate and handle problems you haven't seen before
+- NOT: LeetCode hard, system design, or deep backend knowledge
+
+### Your angle in the interview
+You built a production-grade backend (layered architecture, JWT, RBAC, multi-tenancy).
+Now you're building the frontend on top of it. That story — "I built the whole thing" — is
+memorable and rare for a junior candidate. Use it.
 
 ---
 
@@ -43,8 +62,280 @@ practices, cloud deployment, and scalable architecture.
 
 ---
 
+## Phase F1 – JavaScript Fundamentals (Interview Survival Kit)
+> **Why now:** You cannot write React confidently without owning these.
+> Do this phase in 2–3 days by writing every example by hand, not just reading.
+
+### Core JS — write each of these from scratch in a `.js` file and run with `node`
+
+#### Variables & Scope
+- [ ] Explain and demonstrate: `var` (function-scoped, hoisted) vs `let`/`const` (block-scoped)
+- [ ] Write an example where `var` causes a bug that `let` fixes
+- [ ] Write a closure — a function that remembers a variable from its outer scope:
+  ```js
+  function makeCounter() {
+    let count = 0;
+    return () => ++count;
+  }
+  const counter = makeCounter();
+  counter(); // 1
+  counter(); // 2
+  ```
+
+#### Functions
+- [ ] Write a regular function and an arrow function that do the same thing
+- [ ] Explain the `this` difference: arrow functions inherit `this`, regular functions have their own
+- [ ] Write a function with default parameters: `function greet(name = 'World') {}`
+- [ ] Write a higher-order function (a function that takes a function as argument)
+
+#### Arrays — must know cold
+- [ ] `map` — transform every item, returns new array:
+  ```js
+  const names = users.map(u => u.name);
+  ```
+- [ ] `filter` — keep items that pass a test, returns new array:
+  ```js
+  const active = employees.filter(e => e.status === 'ACTIVE');
+  ```
+- [ ] `reduce` — collapse array to single value:
+  ```js
+  const total = [1,2,3].reduce((acc, n) => acc + n, 0); // 6
+  ```
+- [ ] `find` — returns first match or undefined
+- [ ] `some` / `every` — returns boolean
+- [ ] `forEach` — iterate, returns nothing (don't use when you need a return value)
+- [ ] Chain them: filter active employees, map to names, sort alphabetically
+
+#### Objects
+- [ ] Destructuring: `const { name, email } = user;`
+- [ ] Spread: `const updated = { ...user, name: 'New Name' };`
+- [ ] Optional chaining: `user?.address?.city`
+- [ ] Nullish coalescing: `const port = process.env.PORT ?? 3001`
+- [ ] Shorthand properties: `const obj = { name, email }` (when var name matches key)
+
+#### Async JS — critical for frontend API calls
+- [ ] Write a Promise from scratch: `new Promise((resolve, reject) => {})`
+- [ ] Write `async/await` fetching from an API:
+  ```js
+  async function getUser(id) {
+    const res = await fetch(`/api/users/${id}`);
+    if (!res.ok) throw new Error('Failed');
+    return res.json();
+  }
+  ```
+- [ ] Write try/catch around async function
+- [ ] Explain: what happens if you forget `await`? (you get a Promise object, not the value)
+- [ ] `Promise.all` — run multiple async calls in parallel:
+  ```js
+  const [employees, departments] = await Promise.all([
+    fetchEmployees(),
+    fetchDepartments(),w
+  ]);
+  ```
+- [ ] Explain the event loop in one sentence: "JS is single-threaded; async operations are
+  offloaded and their callbacks are queued to run after the current code finishes."
+
+#### Other Must-Knows
+- [ ] `===` vs `==` — always use `===` (strict equality, no type coercion)
+- [ ] Truthy/falsy values: `0`, `""`, `null`, `undefined`, `NaN`, `false` are falsy
+- [ ] Template literals: `` `Hello ${name}` ``
+- [ ] `typeof`, `instanceof`
+- [ ] Array/object immutability — why you don't mutate state directly in React
+
+### Deliverable
+You can write any of these from memory. You can explain them without hesitating.
+
+---
+
+## Phase F2 – React Core (Build Flowlane Frontend)
+> **Why now:** Building something real teaches more than any tutorial.
+> Your backend API is already running. Wire the frontend to it.
+> Every component you build here is a talking point in the interview.
+
+### Setup
+- [x] `npm create vite@latest frontend -- --template react`
+- [x] `cd frontend && npm install react-router-dom axios`
+- [x] Create `frontend/.env`: `VITE_API_URL=http://localhost:3001`
+- [x] Create `frontend/.gitignore`: add `node_modules`, `.env`, `dist`
+- [x] Run `npm run dev` — confirm Vite dev server starts at `http://localhost:5173`
+
+### Concept: What is a React component
+- [ ] Understand: a component is a function that returns JSX
+- [ ] Understand: JSX is not HTML — it compiles to `React.createElement()` calls
+- [ ] Understand: components re-render when state or props change
+- [ ] Write a `Button` component that accepts `label` and `onClick` as props:
+  ```jsx
+  function Button({ label, onClick }) {
+    return <button onClick={onClick}>{label}</button>;
+  }
+  ```
+
+### useState — local component state
+- [ ] Understand: `useState` returns `[value, setter]` — calling setter triggers re-render
+- [ ] Build a login form using controlled inputs:
+  ```jsx
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  // <input value={email} onChange={e => setEmail(e.target.value)} />
+  ```
+- [ ] Understand: why you never mutate state directly (`state.name = 'x'` is wrong)
+- [ ] Build a loading state: `const [loading, setLoading] = useState(false)`
+- [ ] Build an error state: `const [error, setError] = useState(null)`
+
+### useEffect — side effects and API calls
+- [ ] Understand: runs after render, used for data fetching, subscriptions, timers
+- [ ] Understand the dependency array:
+  - `[]` — runs once on mount
+  - `[id]` — runs when `id` changes
+  - no array — runs on every render (rarely what you want)
+- [ ] Understand cleanup: return a function from useEffect to cancel subscriptions/timers
+- [ ] Write: fetch employees on component mount:
+  ```jsx
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await api.get('/employees');
+        if (!cancelled) setEmployees(res.data.data);
+      } catch (err) {
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+  ```
+
+### Axios API Client
+- [x] Create `src/api/client.js`:
+  ```js
+  import axios from 'axios';
+
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
+  });
+
+  // Attach token to every request
+  api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+
+  // Handle 401 globally — clear token and redirect
+  api.interceptors.response.use(
+    (res) => res,
+    (err) => {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('accessToken');
+        window.location.href = '/login';
+      }
+      return Promise.reject(err);
+    }
+  );
+
+  export default api;
+  ```
+- [ ] Understand: interceptors run on every request/response — good for auth headers and errors
+- [ ] Understand: why this is better than writing `Authorization` header in every component
+
+### React Router
+- [ ] Install already done — set up routes in `src/main.jsx` or `src/App.jsx`:
+  ```jsx
+  import { BrowserRouter, Routes, Route } from 'react-router-dom';
+  // <BrowserRouter><Routes><Route path="/login" element={<Login />} /></Routes></BrowserRouter>
+  ```
+- [ ] Understand: `<Link>` vs `<a>` — Link does client-side navigation, `<a>` reloads the page
+- [ ] Understand: `useNavigate()` — programmatic navigation after login/logout
+- [ ] Understand: `useParams()` — read URL params like `/employees/:id`
+
+### ProtectedRoute Component
+- [ ] Create `src/components/ProtectedRoute.jsx`:
+  ```jsx
+  import { Navigate } from 'react-router-dom';
+
+  function ProtectedRoute({ children }) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return <Navigate to="/login" replace />;
+    return children;
+  }
+
+  export default ProtectedRoute;
+  ```
+- [ ] Understand: this is a wrapper component — it checks auth before rendering children
+- [ ] Wrap dashboard routes: `<Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />`
+
+### Login Page
+- [ ] Create `src/pages/Login.jsx`:
+  - Controlled form: email + password inputs
+  - Submit calls `POST /auth/login` via axios
+  - On success: store token in localStorage, navigate to `/dashboard`
+  - On error: show error message below the form
+  - Loading state: disable button while request is pending
+  - Show password strength rules hint (you built this in the backend — mention it)
+
+### Dashboard Layout
+- [x] Create `src/components/Layout.jsx`:
+  - Sidebar: nav links to Employees, Departments
+  - Header: show current user email + Logout button
+  - Logout: clear localStorage, navigate to `/login`
+  - `<Outlet />` from react-router for nested routes
+
+### Employees Page
+- [x] Create `src/pages/Employees.jsx`:
+  - `useEffect` to fetch `GET /employees` on mount
+  - Render employees in an HTML table
+  - Loading state: show "Loading..." text while fetching
+  - Empty state: show "No employees found" if array is empty
+  - Error state: show error message if fetch fails
+  - Map over employees array to render rows:
+    ```jsx
+    {employees.map(emp => (
+      <tr key={emp.id}>
+        <td>{emp.firstName} {emp.lastName}</td>
+        <td>{emp.email}</td>
+        <td>{emp.status}</td>
+      </tr>
+    ))}
+    ```
+
+### CSS — enough to not embarrass yourself
+- [ ] Understand the box model: content → padding → border → margin
+- [ ] Write flexbox layout (sidebar + main):
+  ```css
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 240px; background: #1e293b; }
+  .main { flex: 1; padding: 24px; }
+  ```
+- [ ] Write a responsive rule with media query:
+  ```css
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+  }
+  ```
+- [ ] Understand: `position: relative` vs `absolute` vs `fixed`
+- [ ] Understand: `z-index` only works on positioned elements
+
+### What you can explain after this phase
+- [ ] "What is state in React?" — data that lives in a component and triggers re-renders when changed
+- [ ] "What is a prop?" — data passed from parent to child, read-only in the child
+- [ ] "What is useEffect?" — runs side effects after render; fetching data, subscriptions
+- [ ] "What is the virtual DOM?" — React's in-memory representation of the UI; it diffs against the real DOM and only updates what changed (efficient)
+- [ ] "How do you consume a REST API in React?" — axios instance with interceptors, useEffect to fetch on mount, useState to store results
+- [ ] "What is a controlled component?" — input whose value is driven by React state, not the DOM
+- [ ] "How does routing work in React?" — React Router intercepts navigation, renders matching components without full page reload
+
+### Deliverable
+Working frontend: login → protected dashboard → employees table.
+You have built and can explain every piece of it.
+
+---
+
 ## Phase 1 – Dev Tooling & Code Quality
-> **Why now:** Every line written without a linter is future debt. Tooling must exist before features.
+> **Why now:** Before adding more backend features, lock in code standards.
 
 ### ESLint
 - [ ] `npm install --save-dev eslint eslint-config-airbnb-base eslint-plugin-import`
@@ -53,161 +344,103 @@ practices, cloud deployment, and scalable architecture.
   {
     "extends": ["airbnb-base", "prettier"],
     "env": { "node": true, "es2022": true },
-    "rules": {
-      "no-console": "warn",
-      "import/extensions": "off"
-    }
+    "rules": { "no-console": "warn", "import/extensions": "off" }
   }
   ```
-- [ ] Add script to `package.json`: `"lint": "eslint src/"`
-- [ ] Run `npm run lint` — fix all existing warnings and errors
+- [ ] Add script: `"lint": "eslint src/"`
+- [ ] Run lint — fix all existing warnings and errors
 
 ### Prettier
 - [ ] `npm install --save-dev prettier eslint-config-prettier`
 - [ ] Create `.prettierrc`:
   ```json
-  {
-    "singleQuote": true,
-    "semi": true,
-    "tabWidth": 2,
-    "printWidth": 100,
-    "trailingComma": "all"
-  }
+  { "singleQuote": true, "semi": true, "tabWidth": 2, "printWidth": 100, "trailingComma": "all" }
   ```
 - [ ] Add script: `"format": "prettier --write src/"`
-- [ ] Run `npm run format` on entire codebase
+- [ ] Run format on entire codebase
 
-### Node Version Pinning
-- [ ] Create `.nvmrc` in project root: `20.11.0`
-- [ ] Add to `package.json`: `"engines": { "node": ">=20.0.0" }`
-
-### Git Hygiene
-- [ ] Establish and document branch strategy: `main` → `dev` → `feature/name`
-- [ ] Confirm `.gitignore` covers: `node_modules/`, `.env`, `*.log`, `dist/`
+### Git & Node Hygiene
+- [ ] Create `.nvmrc`: `20.11.0`
+- [ ] Add `"engines": { "node": ">=20.0.0" }` to `package.json`
+- [ ] Confirm branch strategy: `main` → `dev` → `feature/name`
+- [ ] Confirm `.gitignore` covers `node_modules/`, `.env`, `*.log`, `dist/`
+- [ ] Create `.env.example` — document all required vars with placeholder values (commit this)
 - [ ] Run `git log --all -- .env` — confirm `.env` was never committed
-- [ ] Create `.env.example` (commit this — documents required vars with placeholder values)
 
 ### Deliverable
-Zero lint errors on `main`. Consistent formatting enforced. Branch strategy active.
+Zero lint errors on `main`. Formatting enforced. `.env.example` committed.
 
 ---
 
 ## Phase 2 – Security & API Hardening
-> **Why now:** Response contracts and auth security must be locked in before building features on top.
+> Lock in security contracts before building more features on top.
 
 ### Standardized API Response Format
-- [ ] Define and document the response envelope:
-  - Success: `{ success: true, data: { ... } }`
-  - Error: `{ success: false, error: { code: "AUTH_001", message: "..." } }`
 - [ ] Create `src/utils/response.js`:
   ```js
   const sendSuccess = (res, data, statusCode = 200) =>
     res.status(statusCode).json({ success: true, data });
-
   const sendError = (res, message, code, statusCode = 400) =>
     res.status(statusCode).json({ success: false, error: { code, message } });
   ```
-- [ ] Refactor `auth.controller.js` (register, login, me) to use helpers
-- [ ] Refactor `admin.controller.js` (ping) to use helpers
-- [ ] Update `errorHandler.js` to return same envelope format
+- [ ] Refactor all controllers to use `sendSuccess` / `sendError`
+- [ ] Update `errorHandler.js` to return same envelope
 
 ### Error Codes
 - [ ] Create `src/utils/errorCodes.js`:
   ```js
   module.exports = {
-    AUTH_001: 'AUTH_001',       // Invalid credentials
-    AUTH_002: 'AUTH_002',       // Token expired
-    AUTH_003: 'AUTH_003',       // Token invalid or missing
-    AUTH_004: 'AUTH_004',       // Insufficient role
-    AUTH_005: 'AUTH_005',       // Refresh token invalid
+    AUTH_001: 'AUTH_001',           // Invalid credentials
+    AUTH_002: 'AUTH_002',           // Token expired
+    AUTH_003: 'AUTH_003',           // Token invalid or missing
+    AUTH_004: 'AUTH_004',           // Insufficient role
+    AUTH_005: 'AUTH_005',           // Refresh token invalid
     VALIDATION_001: 'VALIDATION_001', // Input validation failed
-    NOT_FOUND_001: 'NOT_FOUND_001',   // Resource not found
-    SERVER_001: 'SERVER_001',         // Internal server error
+    NOT_FOUND_001: 'NOT_FOUND_001', // Resource not found
+    SERVER_001: 'SERVER_001',       // Internal server error
   };
   ```
-- [ ] Update `auth.middleware.js` — use `AUTH_002` for expired, `AUTH_003` for invalid/missing
-- [ ] Update `errorHandler.js` — use `SERVER_001` for unhandled errors
-- [ ] Update all auth service throws to include the relevant error code
+- [ ] Update `auth.middleware.js` — `AUTH_002` for expired, `AUTH_003` for missing/invalid
+- [ ] Update `errorHandler.js` — `SERVER_001` for unhandled errors
 
 ### Environment Validation at Startup
-- [ ] Create `src/config/validateEnv.js`:
-  - Validate with Zod: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `NODE_ENV`, `CORS_ORIGIN`
-  - On failure: log the missing vars and `process.exit(1)`
-- [ ] Call `validateEnv()` as the first line of `server.js` before anything else
-- [ ] Add `JWT_REFRESH_SECRET` and `CORS_ORIGIN` to `.env` and `.env.example`
+- [ ] Create `src/config/validateEnv.js` — validate all required vars with Zod at startup
+- [ ] Required: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `NODE_ENV`, `CORS_ORIGIN`
+- [ ] On failure: log missing vars and `process.exit(1)` — server refuses to start
+- [ ] Call `validateEnv()` as first line of `server.js`
 
 ### Refresh Token Implementation
-- [ ] Add `refreshToken String? @unique` to `User` model in `schema.prisma`
+- [ ] Add `refreshToken String? @unique` to `User` in `schema.prisma`
 - [ ] Run `npx prisma migrate dev --name add_refresh_token`
-- [ ] In `auth.service.js` — update `loginUser()`:
-  - Generate refresh token: `crypto.randomBytes(64).toString('hex')`
-  - Hash it with bcrypt (10 rounds) before storing in DB
-  - Return both `accessToken` (15m TTL) and raw `refreshToken` (30d TTL) in response
-- [ ] Create `POST /auth/refresh`:
-  - Accept `{ refreshToken }` in request body
-  - Find candidate users, bcrypt-compare hashed token to find match
-  - Issue new access token
-  - Rotate: generate new refresh token, hash and store, return new raw token
-- [ ] Create `POST /auth/logout`:
-  - Require `requireAuth` middleware
-  - Set `refreshToken = null` in DB for authenticated user
-  - Return `{ success: true, data: { message: "Logged out" } }`
-- [ ] Shorten access token TTL to `15m` in `JWT_EXPIRES_IN`
-- [ ] Update `02-DECISIONS.md` with refresh token decision entry
+- [ ] Update `loginUser()`:
+  - Generate: `crypto.randomBytes(64).toString('hex')`
+  - Hash with bcrypt (10 rounds) before storing
+  - Return raw `accessToken` (15m) + raw `refreshToken` (30d)
+- [ ] `POST /auth/refresh` — validate, issue new access token, rotate refresh token
+- [ ] `POST /auth/logout` — set `refreshToken = null` in DB
+- [ ] Update `02-DECISIONS.md` with refresh token entry
 
 ### Rate Limiting
 - [ ] `npm install express-rate-limit`
-- [ ] Create `src/middleware/rateLimiter.js`:
-  ```js
-  const { rateLimit } = require('express-rate-limit');
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, error: { code: 'RATE_001', message: 'Too many requests, try again later.' } },
-  });
-  module.exports = { authLimiter };
-  ```
-- [ ] Apply `authLimiter` to: `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`
-- [ ] Do NOT apply to `/health/*` or read-only routes
+- [ ] Create `src/middleware/rateLimiter.js` — max 10 req / 15min per IP
+- [ ] Apply to: `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`
 
-### Request Logger Middleware
-- [ ] Create `src/middleware/requestLogger.js`:
-  - Use `res.on('finish', ...)` to capture status code after response is sent
-  - Log: `[TIMESTAMP] METHOD /path STATUS_CODE Xms`
-- [ ] Mount in `app.js` before all route definitions
-
-### CORS Hardening
-- [ ] Move allowed origin to `CORS_ORIGIN` env var
-- [ ] Update CORS config: restrict methods, allow credentials, set `allowedHeaders`
+### Request Logger + CORS Hardening
+- [ ] Create `src/middleware/requestLogger.js` — log method, path, status, duration
+- [ ] Move CORS origin to `CORS_ORIGIN` env var, restrict methods, add `credentials: true`
 
 ### Deliverable
-No known auth security gaps. Consistent response format. Rate limiting active.
-Refresh token rotation working. Server fails fast on missing config.
+No known auth security gaps. Consistent response format. Server fails fast on bad config.
 
 ---
 
 ## Phase 3 – Infrastructure & CI/CD
-> **Why now:** Docker and CI must wrap the project before feature complexity grows.
-> Retrofitting containerization after 3 more phases of code is painful.
+> Docker and CI before feature complexity grows.
 
-### Structured Logging (replaces console.log)
+### Structured Logging
 - [ ] `npm install pino pino-pretty`
-- [ ] Create `src/utils/logger.js`:
-  ```js
-  const pino = require('pino');
-  module.exports = pino({
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-    transport: process.env.NODE_ENV !== 'production'
-      ? { target: 'pino-pretty', options: { colorize: true } }
-      : undefined,
-  });
-  ```
-- [ ] Replace every `console.log` in `src/` with `logger.info()`
-- [ ] Replace every `console.error` with `logger.error()`
-- [ ] Update `requestLogger.js` to use pino logger
-- [ ] Add `logger.error({ err }, 'Unhandled error')` in `errorHandler.js`
+- [ ] Create `src/utils/logger.js` — JSON in production, pretty in development
+- [ ] Replace all `console.log` / `console.error` in `src/` with logger calls
 
 ### Docker
 - [ ] Create `backend/Dockerfile`:
@@ -220,555 +453,265 @@ Refresh token rotation working. Server fails fast on missing config.
   EXPOSE 3001
   CMD ["node", "src/server.js"]
   ```
-- [ ] Create `backend/.dockerignore`:
-  ```
-  node_modules
-  .env
-  *.log
-  .git
-  coverage
-  ```
-- [ ] Create `docker-compose.yml` in project root:
-  ```yaml
-  services:
-    api:
-      build: ./backend
-      ports: ["3001:3001"]
-      env_file: ./backend/.env
-      environment:
-        DATABASE_URL: postgresql://flowlane:flowlane_dev_password@db:5432/flowlane_dev
-      depends_on:
-        db:
-          condition: service_healthy
-    db:
-      image: postgres:16-alpine
-      environment:
-        POSTGRES_USER: flowlane
-        POSTGRES_PASSWORD: flowlane_dev_password
-        POSTGRES_DB: flowlane_dev
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-      healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U flowlane"]
-        interval: 5s
-        timeout: 5s
-        retries: 5
-  volumes:
-    postgres_data:
-  ```
-- [ ] Test: `docker-compose up --build`
-- [ ] Verify: `GET /health/live` → 200 inside Docker
-- [ ] Verify: `GET /health/ready` → 200 (DB connected through Docker network)
-- [ ] Verify: register + login flow works end-to-end inside Docker
+- [ ] Create `backend/.dockerignore`: `node_modules`, `.env`, `*.log`, `.git`, `coverage`
+- [ ] Create `docker-compose.yml` in project root — `api` + `db` services with healthcheck
+- [ ] Test: `docker-compose up --build` → `/health/live` and `/health/ready` both return 200
 
 ### GitHub Actions CI
-- [ ] Create `.github/workflows/ci.yml`:
-  ```yaml
-  name: CI
-  on:
-    push:
-      branches: [main, dev]
-    pull_request:
-      branches: [main, dev]
-  jobs:
-    lint-and-build:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: actions/setup-node@v4
-          with:
-            node-version-file: .nvmrc
-            cache: npm
-            cache-dependency-path: backend/package-lock.json
-        - run: npm ci
-          working-directory: backend
-        - run: npm run lint
-          working-directory: backend
-        - name: Verify app loads without error
-          working-directory: backend
-          run: node -e "require('./src/app')"
-          env:
-            DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-            JWT_SECRET: ci-secret
-            JWT_REFRESH_SECRET: ci-refresh-secret
-            JWT_EXPIRES_IN: 15m
-            PORT: 3001
-            NODE_ENV: test
-            CORS_ORIGIN: http://localhost:3000
-  ```
-- [ ] Push to `dev` — verify CI passes in GitHub Actions tab
-- [ ] Introduce a lint error intentionally — verify CI fails
+- [ ] Create `.github/workflows/ci.yml` — triggers on push/PR to `main` and `dev`:
+  - Checkout → setup Node (from `.nvmrc`) → `npm ci` → `npm run lint` → verify app loads
+- [ ] Push to `dev` — confirm green in Actions tab
+- [ ] Introduce lint error — confirm CI fails
 
 ### Deliverable
-Fully containerized. Every push to `main`/`dev` linted and validated by CI.
-Structured JSON logs in production. Human-readable pretty logs in development.
+Every push to `main`/`dev` linted and validated. Containerized and working in Docker.
 
 ---
 
 ## Phase 4 – Multi-Tenant SaaS Core
-> **Why now:** Tenant isolation must be designed before HR data is modeled.
-> Retrofitting multi-tenancy after building Employee/Department is one of the hardest refactors in SaaS.
+> Design tenant isolation before modeling HR data — retrofitting is very hard.
 
 ### Data Model — Company
-- [ ] Add `Company` model to `schema.prisma`:
-  ```prisma
-  model Company {
-    id          Int        @id @default(autoincrement())
-    name        String
-    slug        String     @unique
-    deletedAt   DateTime?
-    createdAt   DateTime   @default(now())
-    updatedAt   DateTime   @updatedAt
-    users       User[]
-  }
-  ```
-- [ ] Update `User` model: add `companyId Int?` (nullable for migration safety)
+- [ ] Add `Company` model to `schema.prisma` (id, name, slug unique, deletedAt, timestamps)
+- [ ] Add `companyId Int?` to `User` model (nullable for migration safety)
 - [ ] Add `super_admin` to `Role` enum
 - [ ] Run `npx prisma migrate dev --name add_company_and_super_admin`
-- [ ] Update `02-DECISIONS.md` with multi-tenancy decision entry
 
-### Tenant Middleware
-- [ ] Create `src/middleware/tenant.middleware.js`:
-  - After `requireAuth`, attach `req.companyId` from `req.user.companyId`
-  - If no `companyId` and role is not `super_admin`, return 403 with `AUTH_004`
-- [ ] Create `src/utils/assertTenant.js`:
-  ```js
-  const assertSameTenant = (req, resourceCompanyId) => {
-    if (req.companyId !== resourceCompanyId) {
-      const err = new Error('Access denied');
-      err.statusCode = 403;
-      err.code = 'AUTH_004';
-      throw err;
-    }
-  };
-  ```
-- [ ] Document rule in `02-DECISIONS.md`: "All service functions receive companyId as the first argument. Queries without companyId are forbidden."
+### Tenant Middleware & Guard
+- [ ] Create `src/middleware/tenant.middleware.js` — attach `req.companyId` from `req.user`
+- [ ] Create `src/utils/assertTenant.js` — throw 403 if resource companyId !== req.companyId
+- [ ] Document in `02-DECISIONS.md`: all service functions receive `companyId` as first argument
 
 ### Company Endpoints (super_admin only)
-- [ ] Create `src/validators/company.validators.js` — Zod schemas for create + update
-- [ ] Create `src/services/company.service.js`:
-  - `createCompany(data)` — validate slug is URL-safe (`/^[a-z0-9-]+$/`)
-  - `listCompanies({ page, limit })` — paginated, exclude soft-deleted
-  - `getCompany(id)` — throw `NOT_FOUND_001` if not found
-  - `updateCompany(id, data)`
-  - `deleteCompany(id)` — soft delete only (set `deletedAt`, never hard delete)
-- [ ] Create `src/controllers/company.controller.js`
-- [ ] Create `src/routes/company.routes.js`:
-  - `POST /companies` — `requireAuth`, `requireRole('super_admin')`
-  - `GET /companies` — `requireAuth`, `requireRole('super_admin')`
-  - `GET /companies/:id` — `requireAuth`, `requireRole('super_admin')`
-  - `PATCH /companies/:id` — `requireAuth`, `requireRole('super_admin')`
-  - `DELETE /companies/:id` — `requireAuth`, `requireRole('super_admin')`
-- [ ] Register routes in `app.js`
+- [ ] `POST /companies`, `GET /companies`, `GET /companies/:id`, `PATCH /companies/:id`, `DELETE /companies/:id`
+- [ ] Soft delete only — set `deletedAt`, never hard delete
 
 ### Audit Log
-- [ ] Add `AuditLog` model to `schema.prisma`:
-  ```prisma
-  model AuditLog {
-    id        Int      @id @default(autoincrement())
-    companyId Int
-    actorId   Int
-    action    String
-    entity    String
-    entityId  Int?
-    metadata  Json?
-    createdAt DateTime @default(now())
-    company   Company  @relation(fields: [companyId], references: [id])
-  }
-  ```
+- [ ] Add `AuditLog` model (companyId, actorId, action, entity, entityId, metadata, createdAt)
 - [ ] Run `npx prisma migrate dev --name add_audit_log`
-- [ ] Create `src/services/audit.service.js`:
-  ```js
-  const logAction = ({ companyId, actorId, action, entity, entityId, metadata }) =>
-    prisma.auditLog.create({ data: { companyId, actorId, action, entity, entityId, metadata } });
-  ```
-- [ ] Add audit calls in:
-  - `auth.service.js` → `registerUser()`: action `USER_REGISTERED`, entity `User`
-  - `auth.service.js` → `loginUser()`: action `USER_LOGIN`, entity `User`
-  - `company.service.js` → create/update/delete: `COMPANY_CREATED`, `COMPANY_UPDATED`, `COMPANY_DELETED`
-- [ ] `GET /companies/:id/audit` — paginated audit log (admin + super_admin only)
+- [ ] Create `src/services/audit.service.js` — `logAction({ companyId, actorId, action, entity, entityId, metadata })`
+- [ ] Add audit calls in: register, login, company CRUD
+- [ ] `GET /companies/:id/audit` — paginated (admin + super_admin only)
 
 ### Deliverable
-True SaaS-ready multi-tenant architecture. Every query is company-scoped.
-Cross-tenant data access blocked at middleware level.
+True multi-tenant architecture. Every query company-scoped. Cross-tenant access blocked.
 
 ---
 
 ## Phase 5 – Core HR Module (Bachelor MVP)
-> Foundation is solid. Multi-tenancy is in. Now build the actual features.
+> Build on the solid foundation. Backend + complete frontend.
 
 ### Backend — Employee Module
-- [ ] Add `Employee` and `EmployeeStatus` to `schema.prisma`:
-  ```prisma
-  model Employee {
-    id           Int            @id @default(autoincrement())
-    companyId    Int
-    firstName    String
-    lastName     String
-    email        String
-    phone        String?
-    position     String?
-    departmentId Int?
-    startDate    DateTime?
-    status       EmployeeStatus @default(ACTIVE)
-    deletedAt    DateTime?
-    createdAt    DateTime       @default(now())
-    updatedAt    DateTime       @updatedAt
-    company      Company        @relation(fields: [companyId], references: [id])
-    department   Department?    @relation(fields: [departmentId], references: [id])
-
-    @@unique([companyId, email])
-  }
-
-  enum EmployeeStatus { ACTIVE INACTIVE }
-  ```
+- [ ] Add `Employee` model (companyId, firstName, lastName, email, phone, position, departmentId, startDate, status, deletedAt, timestamps)
+- [ ] `@@unique([companyId, email])`
 - [ ] Run `npx prisma migrate dev --name add_employee`
-- [ ] Create `src/validators/employee.validators.js` — Zod schemas for create + update
-- [ ] Create `src/services/employee.service.js`:
-  - `createEmployee(companyId, data)` — validate unique email per company
-  - `listEmployees(companyId, { page, limit, status, departmentId })` — paginated
-  - `getEmployee(companyId, employeeId)` — throw `NOT_FOUND_001` if not found or wrong tenant
-  - `updateEmployee(companyId, employeeId, data)` — validate tenant, update fields
-  - `deactivateEmployee(companyId, employeeId)` — set `status = INACTIVE`, set `deletedAt`
-- [ ] Create `src/controllers/employee.controller.js`
-- [ ] Create `src/routes/employee.routes.js`:
-  - `POST /employees` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-  - `GET /employees` — `requireAuth`, `requireRole('admin', 'employee')`, `tenantMiddleware`
-  - `GET /employees/:id` — `requireAuth`, `requireRole('admin', 'employee')`, `tenantMiddleware`
-  - `PATCH /employees/:id` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-  - `DELETE /employees/:id` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-- [ ] Register routes in `app.js`
-- [ ] Add audit log calls: `EMPLOYEE_CREATED`, `EMPLOYEE_UPDATED`, `EMPLOYEE_DEACTIVATED`
+- [ ] `employee.service.js`: createEmployee, listEmployees (paginated), getEmployee, updateEmployee, deactivateEmployee
+- [ ] Routes: POST, GET, GET/:id, PATCH/:id, DELETE/:id — all with `requireAuth`, `requireRole`, `tenantMiddleware`
+- [ ] Audit calls: `EMPLOYEE_CREATED`, `EMPLOYEE_UPDATED`, `EMPLOYEE_DEACTIVATED`
 
 ### Backend — Department Module
-- [ ] Add `Department` to `schema.prisma`:
-  ```prisma
-  model Department {
-    id        Int        @id @default(autoincrement())
-    companyId Int
-    name      String
-    managerId Int?
-    createdAt DateTime   @default(now())
-    updatedAt DateTime   @updatedAt
-    company   Company    @relation(fields: [companyId], references: [id])
-    employees Employee[]
-
-    @@unique([companyId, name])
-  }
-  ```
+- [ ] Add `Department` model (companyId, name, managerId, timestamps) — `@@unique([companyId, name])`
 - [ ] Run `npx prisma migrate dev --name add_department`
-- [ ] Create `src/validators/department.validators.js`
-- [ ] Create `src/services/department.service.js`:
-  - `createDepartment(companyId, data)`
-  - `listDepartments(companyId)` — include `_count: { employees: true }` in query
-  - `getDepartment(companyId, departmentId)` — with employees list
-  - `updateDepartment(companyId, departmentId, data)`
-  - `deleteDepartment(companyId, departmentId)` — throw error if active employees assigned
-- [ ] Create `src/controllers/department.controller.js`
-- [ ] Create `src/routes/department.routes.js`:
-  - `POST /departments` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-  - `GET /departments` — `requireAuth`, `requireRole('admin', 'employee')`, `tenantMiddleware`
-  - `GET /departments/:id` — `requireAuth`, `requireRole('admin', 'employee')`, `tenantMiddleware`
-  - `PATCH /departments/:id` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-  - `DELETE /departments/:id` — `requireAuth`, `requireRole('admin')`, `tenantMiddleware`
-- [ ] Register routes in `app.js`
+- [ ] `department.service.js`: CRUD + include employee count + guard delete if active employees
+- [ ] Routes: POST, GET, GET/:id, PATCH/:id, DELETE/:id
 
 ### Pagination Utility
-- [ ] Create `src/utils/pagination.js`:
-  ```js
-  const parsePagination = (query) => {
-    const page = Math.max(1, parseInt(query.page, 10) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(query.limit, 10) || 20));
-    return { page, limit, skip: (page - 1) * limit };
-  };
+- [ ] Create `src/utils/pagination.js` — `parsePagination(query)` and `paginatedResponse(data, total, page, limit)`
+- [ ] Response shape: `{ data: [], meta: { total, page, limit, totalPages } }`
 
-  const paginatedResponse = (data, total, page, limit) => ({
-    data,
-    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
-  });
+### Frontend — Complete the UI
+> By this point you already have login + protected routes + employees table from Phase F2.
+> Now complete the full CRUD interface.
 
-  module.exports = { parsePagination, paginatedResponse };
-  ```
-- [ ] Use in `employee.service.js` and any future list endpoints
-
-### README Update
-- [ ] Add ASCII architecture diagram showing frontend → API → DB
-- [ ] Add complete API endpoint reference table (method, path, auth, role, description)
-- [ ] Add Docker setup section: `docker-compose up --build`
-- [ ] Add "About this project" paragraph (3–4 sentences for a recruiter who skims)
-- [ ] Update "Current System Status" to reflect Phase 5 completion
-- [ ] Replace "Planned Improvements" with link to `docs/00-ROADMAP.md`
-
-### Frontend — React + Vite
-- [ ] `npm create vite@latest frontend -- --template react`
-- [ ] `cd frontend && npm install react-router-dom axios @tanstack/react-query`
-- [ ] Create `frontend/.env`: `VITE_API_URL=http://localhost:3001`
-- [ ] Create `src/api/client.js` — axios instance:
-  - Base URL from `VITE_API_URL`
-  - Request interceptor: attach `Authorization: Bearer <token>` from storage
-  - Response interceptor: on 401 → clear token and redirect to `/login`
-- [ ] Auth pages:
-  - [ ] `/login` — email + password form, POST to `/auth/login`, store token + refresh token
-  - [ ] `/register` — form with password rules displayed, POST to `/auth/register`
-  - [ ] Redirect to `/dashboard` on successful auth
-- [ ] `ProtectedRoute` wrapper component — redirect to `/login` if no valid token
-- [ ] Dashboard layout:
-  - [ ] Sidebar with nav links: Dashboard, Employees, Departments
-  - [ ] Header with current user name + role badge + logout button
-  - [ ] Logout calls `POST /auth/logout`, clears tokens, redirects to `/login`
-- [ ] Employees page:
-  - [ ] Table: name, email, position, department, status, actions column
-  - [ ] Pagination controls (previous/next, page indicator, items per page)
+- [ ] Add `@tanstack/react-query` for server state management:
+  - `useQuery` to fetch and cache data
+  - `useMutation` to create/update/delete with automatic refetch
+- [ ] Employees page — add:
+  - [ ] Pagination controls (previous/next, page X of Y)
   - [ ] Status filter dropdown (All / Active / Inactive)
-  - [ ] Create employee modal with validated form
-  - [ ] Edit employee modal (pre-populated fields)
-  - [ ] Deactivate button with confirmation dialog ("Are you sure?")
-- [ ] Departments page:
-  - [ ] Table: name, manager, employee count, actions
+  - [ ] Create employee modal — form + validation + POST `/employees`
+  - [ ] Edit employee modal — pre-populated + PATCH `/employees/:id`
+  - [ ] Deactivate button + confirmation dialog
+- [ ] Departments page — full CRUD:
+  - [ ] Table with employee count per department
   - [ ] Create department modal
   - [ ] Edit department modal
-  - [ ] Delete button — disabled with tooltip if department has active employees
+  - [ ] Delete — disabled with tooltip if active employees assigned
+- [ ] Dashboard home — summary cards:
+  - [ ] Total employees count
+  - [ ] Active employees count
+  - [ ] Departments count
+- [ ] Register page — form + password rules displayed + POST `/auth/register`
+
+### README Update
+- [ ] Add ASCII architecture diagram: `Browser → React → Express API → PostgreSQL`
+- [ ] Add complete API endpoint table (method, path, auth required, role, description)
+- [ ] Add Docker setup section: `docker-compose up --build`
+- [ ] Add "About this project" paragraph (3–4 sentences for a recruiter skimming GitHub)
+- [ ] Add screenshot of the dashboard (even a basic one)
+- [ ] Replace "Planned Improvements" section with link to `docs/00-ROADMAP.md`
 
 ### Deliverable
-Working full-stack HR management MVP. Demonstrable end-to-end:
-register → login → create company → add employees → assign departments → view audit log.
+Full-stack working HR MVP. Demonstrable end-to-end in a browser.
+Register → login → employees table → create employee → create department.
 
 ---
 
 ## ⭐ CV MILESTONE — Reached After Phase 5
 
-**You can now credibly write this on your CV:**
+**Write this on your CV / LinkedIn / tell this in interviews:**
 
 ```
 Flowlane – HR Operations SaaS                                       2026
 Node.js · Express · PostgreSQL · Prisma · JWT · React · Docker · Azure
 
-• Built a multi-tenant SaaS HR backend from scratch using layered
-  architecture (Routes → Controllers → Services → ORM)
-• Stateless JWT authentication with refresh token rotation (15m access /
-  30d refresh), RBAC with company-scoped role enforcement
+• Built a full-stack multi-tenant SaaS HR system from scratch —
+  layered backend architecture (Routes → Controllers → Services → ORM)
+  with a React frontend consuming the REST API
+• Stateless JWT authentication with refresh token rotation
+  (15m access / 30d refresh), RBAC with company-scoped role enforcement
 • Multi-tenant data isolation — all queries scoped to companyId,
   cross-tenant access blocked at middleware level
 • Employee and Department CRUD with pagination, filtering, soft deletes,
-  and Zod input validation on all inputs
+  and input validation on all endpoints
 • Audit logging for all mutating actions (actor, action, entity, timestamp)
 • Containerized with Docker + docker-compose; CI pipeline with GitHub
-  Actions (lint + build gate on every push to main/dev)
+  Actions (lint + build gate on every push)
 • Deployed to Azure App Service with Azure PostgreSQL
 ```
 
-**What makes this stand out vs typical junior projects:**
-- Multi-tenancy — most juniors never build this
-- Refresh token rotation — most skip this and leave a real security gap
-- Audit logging — shows enterprise-level thinking
-- Documented architectural decisions with explicit tradeoffs
-- CI pipeline active from day one, not retrofitted at the end
-- Deployed and live with a URL you can share
+**For the Maersk interview specifically, lead with:**
+"I built the entire stack myself — Express backend with JWT auth and multi-tenant
+data isolation, and a React frontend that consumes it. I can walk you through
+any layer of the architecture."
 
 ---
 
 ## Phase 6 – Tests
-> **Why after MVP:** Write tests after the data model stabilizes.
-> Testing a moving schema wastes time. Testing stable contracts protects them.
+> Write tests after the data model stabilizes. Testing a moving schema wastes time.
 
 ### Setup
-- [ ] `npm install --save-dev jest supertest`
-- [ ] Add to `package.json`:
-  ```json
-  "jest": {
-    "testEnvironment": "node",
-    "coverageThreshold": { "global": { "lines": 60 } }
-  }
-  ```
-- [ ] Add scripts: `"test": "jest --coverage"` and `"test:watch": "jest --watch"`
-- [ ] Create `backend/.env.test` with test database credentials (separate DB: `flowlane_test`)
-- [ ] Create `flowlane_test` PostgreSQL database
-- [ ] Add `"pretest": "cross-env NODE_ENV=test npx prisma migrate deploy"` script
-- [ ] `npm install --save-dev cross-env`
+- [ ] `npm install --save-dev jest supertest cross-env`
+- [ ] Configure Jest in `package.json` with `testEnvironment: node` and coverage threshold 60%
+- [ ] Create `backend/.env.test` — separate `flowlane_test` database
+- [ ] Add `"pretest": "cross-env NODE_ENV=test npx prisma migrate deploy"`
 
-### Unit Tests — `src/services/auth.service.test.js`
-- [ ] `registerUser` — creates user with hashed password (hash !== plaintext)
-- [ ] `registerUser` — throws on duplicate email within same company
+### Unit Tests — `auth.service.test.js`
+- [ ] `registerUser` — creates user, hashes password (hash !== plaintext)
+- [ ] `registerUser` — throws on duplicate email
 - [ ] `loginUser` — returns `{ accessToken, refreshToken, user }` on valid credentials
 - [ ] `loginUser` — throws `AUTH_001` on wrong password
-- [ ] `loginUser` — throws `AUTH_001` on non-existent email (same error — no user enumeration)
+- [ ] `loginUser` — throws `AUTH_001` on non-existent email (no user enumeration)
 
-### Unit Tests — `src/validators/auth.validators.test.js`
-- [ ] Valid password (10+ chars, all rules met) passes
+### Unit Tests — `auth.validators.test.js`
+- [ ] Valid password passes all rules
 - [ ] Password under 10 chars fails
-- [ ] Password without uppercase fails
-- [ ] Password without number fails
-- [ ] Password without special character fails
-- [ ] Email is trimmed and lowercased before validation
+- [ ] Password without uppercase / number / special char fails
+- [ ] Email is trimmed and lowercased
 
-### Integration Tests — `tests/auth.integration.test.js`
-- [ ] `POST /auth/register` valid data → 201, returns token and user object
-- [ ] `POST /auth/register` weak password → 400, `VALIDATION_001`
-- [ ] `POST /auth/register` duplicate email → 409
-- [ ] `POST /auth/login` valid credentials → 200, returns `accessToken` + `refreshToken`
-- [ ] `POST /auth/login` wrong password → 401, `AUTH_001`
-- [ ] `GET /auth/me` with valid token → 200, returns user
-- [ ] `GET /auth/me` without token → 401, `AUTH_003`
-- [ ] `GET /auth/me` with expired token → 401, `AUTH_002`
-- [ ] `GET /admin/ping` as employee → 403, `AUTH_004`
-- [ ] `GET /admin/ping` as admin → 200
-- [ ] `POST /auth/refresh` valid refresh token → 200, new access token returned
-- [ ] `POST /auth/refresh` invalid token → 401, `AUTH_005`
-- [ ] `POST /auth/logout` → 200, refresh token is nulled in DB
+### Integration Tests — `auth.integration.test.js`
+- [ ] Register valid → 201
+- [ ] Register weak password → 400 `VALIDATION_001`
+- [ ] Register duplicate email → 409
+- [ ] Login valid → 200 with `accessToken` + `refreshToken`
+- [ ] Login wrong password → 401 `AUTH_001`
+- [ ] `GET /auth/me` valid token → 200
+- [ ] `GET /auth/me` no token → 401 `AUTH_003`
+- [ ] `GET /auth/me` expired token → 401 `AUTH_002`
+- [ ] `GET /admin/ping` as employee → 403 `AUTH_004`
+- [ ] `POST /auth/refresh` valid → 200 new access token
+- [ ] `POST /auth/logout` → 200, refresh token nulled in DB
 
-### Integration Tests — `tests/tenant.integration.test.js`
-- [ ] User from Company A `GET /employees` → only Company A employees returned
-- [ ] User from Company A `GET /employees/:id` for Company B employee → 404 (not 403 — don't leak existence)
-- [ ] Admin from Company A `POST /employees` → creates employee in Company A
-- [ ] Admin from Company A `POST /employees` with `companyId` overridden → still scoped to own company
-- [ ] Admin from Company A `DELETE /employees/:id` for Company B employee → 404
+### Integration Tests — `tenant.integration.test.js`
+- [ ] Company A user `GET /employees` → only Company A results
+- [ ] Company A user `GET /employees/:id` for Company B employee → 404 (not 403)
+- [ ] Admin `POST /employees` → creates in own company only
+- [ ] Admin `DELETE /employees/:id` for other company → 404
 
 ### CI Update
-- [ ] Add test step to `.github/workflows/ci.yml`:
-  ```yaml
-  - name: Run tests
-    run: npm test -- --ci --coverage
-    working-directory: backend
-    env:
-      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-      JWT_SECRET: ci-test-secret
-      JWT_REFRESH_SECRET: ci-test-refresh-secret
-      JWT_EXPIRES_IN: 15m
-      PORT: 3002
-      NODE_ENV: test
-      CORS_ORIGIN: http://localhost:3000
-  ```
-- [ ] Add `TEST_DATABASE_URL` to GitHub Actions secrets (use a PostgreSQL service container in CI)
-- [ ] Verify: CI fails if any test fails
-- [ ] Verify: CI fails if line coverage drops below 60%
+- [ ] Add test step to GitHub Actions with PostgreSQL service container
+- [ ] CI fails on test failure or coverage below 60%
 
 ### Deliverable
-Critical auth paths and tenant isolation covered. CI fails on regressions.
+Critical auth and tenant isolation covered. CI fails on regressions.
 
 ---
 
 ## Phase 7 – Cloud Deployment
-> **Why last:** Everything is hardened, tested, and containerized. Now ship it.
-> A live URL closes the deal in interviews.
+> A live URL closes the deal in interviews. Everything is ready — ship it.
 
 ### Azure Setup
 - [ ] Create Azure account (student credits: azure.microsoft.com/free/students)
 - [ ] Create Resource Group: `flowlane-rg`
-- [ ] Create **Azure Database for PostgreSQL – Flexible Server**:
-  - Server name: `flowlane-db`
-  - Version: PostgreSQL 16
-  - Admin username: `flowlane_admin`
-  - Note connection string
-  - Firewall: allow Azure services access
-- [ ] Create **Azure Container Registry**: `flowlaneregistry`
-- [ ] Create **Azure App Service**:
-  - Runtime: Docker Container
-  - OS: Linux
-  - Plan: B1 Basic (cheapest always-on tier)
-  - Region: West Europe
+- [ ] Create Azure Database for PostgreSQL Flexible Server (`flowlane-db`, PostgreSQL 16)
+- [ ] Create Azure Container Registry: `flowlaneregistry`
+- [ ] Create Azure App Service — Docker Container, Linux, B1 Basic, West Europe
 
-### Environment Configuration
-- [ ] In App Service → Configuration → Application Settings, add all env vars:
-  - `DATABASE_URL` — Azure PostgreSQL connection string
-  - `JWT_SECRET` — strong random value (NOT the dev secret — generate fresh)
-  - `JWT_REFRESH_SECRET` — separate strong random value
-  - `JWT_EXPIRES_IN` = `15m`
-  - `NODE_ENV` = `production`
-  - `CORS_ORIGIN` = frontend URL (or `*` for MVP)
-  - `PORT` = `3001`
-- [ ] Never store secrets in code or Docker image
-- [ ] Confirm no `.env` file exists on the server
+### Environment & Migration
+- [ ] Set all env vars in App Service → Configuration (never in code or Docker image)
+- [ ] Use `npx prisma migrate deploy` in production (never `migrate dev`)
+- [ ] Startup command: `npx prisma migrate deploy && node src/server.js`
 
-### Migration Strategy
-- [ ] Do NOT use `prisma migrate dev` in production (creates new migrations)
-- [ ] Use `npx prisma migrate deploy` — applies pending migrations only
-- [ ] Add as startup command before server starts:
-  `npx prisma migrate deploy && node src/server.js`
+### Deployment Pipeline — add to `.github/workflows/ci.yml`
+- [ ] Deploy job triggers on push to `main` only, after CI passes
+- [ ] Steps: login to ACR → build + push Docker image → deploy to App Service
+- [ ] Add secrets: `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`
 
-### Deployment Pipeline
-- [ ] Add deploy job to `.github/workflows/ci.yml` (triggers on push to `main` only, after CI passes):
-  ```yaml
-  deploy:
-    needs: lint-and-build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Login to Azure Container Registry
-        uses: azure/docker-login@v1
-        with:
-          login-server: flowlaneregistry.azurecr.io
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-      - name: Build and push Docker image
-        run: |
-          docker build -t flowlaneregistry.azurecr.io/flowlane-api:${{ github.sha }} ./backend
-          docker push flowlaneregistry.azurecr.io/flowlane-api:${{ github.sha }}
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: flowlane-api
-          images: flowlaneregistry.azurecr.io/flowlane-api:${{ github.sha }}
-  ```
-- [ ] Add GitHub Actions secrets: `ACR_USERNAME`, `ACR_PASSWORD`, `AZURE_CREDENTIALS`
+### Verification
+- [ ] `/health/live` → 200 on production URL
+- [ ] `/health/ready` → 200 (DB connected)
+- [ ] Register + login + `/auth/me` works end-to-end on production
+- [ ] No stack traces in responses (`NODE_ENV=production`)
+- [ ] Logs visible in App Service → Log Stream
 
-### Verification Checklist
-- [ ] `GET https://flowlane-api.azurewebsites.net/health/live` → 200
-- [ ] `GET https://flowlane-api.azurewebsites.net/health/ready` → 200 (DB connected)
-- [ ] Register + login + `/auth/me` flow works on production URL
-- [ ] No stack traces in error responses (`NODE_ENV=production` confirmed)
-- [ ] Logs appear in Azure App Service → Log Stream
-- [ ] Response times acceptable (< 500ms on auth endpoints)
-
-### README Final Update
-- [ ] Add production URL to top of README as a badge or link
-- [ ] Add "Live Demo" section with a pre-seeded read-only test account
-- [ ] Update setup section to show both local and Docker paths clearly
-- [ ] Add deployment architecture diagram (App Service → Azure PostgreSQL)
+### README Final
+- [ ] Add production URL as badge at top
+- [ ] Add "Live Demo" section with pre-seeded test credentials
+- [ ] Add deployment architecture diagram
 
 ### Deliverable
-Live SaaS backend on a public URL. Full pipeline:
-push to `main` → lint → test → build Docker image → deploy to Azure → health check.
+Live URL. Full pipeline: push to `main` → lint → test → Docker → Azure → health check.
 
 ---
 
 ## Optional Extensions (If Time Allows)
 
-- [ ] **Password Reset Flow** — `POST /auth/forgot-password`, `POST /auth/reset-password` with time-limited token (store hash in DB)
-- [ ] **Leave Request Workflow** — `LeaveRequest` model, submit/approve/reject, manager role
-- [ ] **Attendance Tracking** — clock-in/out records, daily summaries, overtime calculation
-- [ ] **File Storage** — employee documents via Azure Blob Storage, presigned upload URLs
-- [ ] **Email Notifications** — SendGrid or Azure Communication Services (welcome, password reset)
-- [ ] **`manager` Role** — department-scoped access, approve leaves for own team only
-- [ ] **API Versioning** — prefix all routes with `/api/v1/`
-- [ ] **OpenAPI / Swagger Docs** — auto-generated from route definitions, hosted at `/api/docs`
-- [ ] **Background Jobs** — BullMQ + Redis for async tasks (email sending, scheduled reports)
-- [ ] **Frontend Deployment** — Vercel (free) or Azure Static Web Apps
+- [ ] **Password Reset** — forgot-password + reset with time-limited hashed token
+- [ ] **Leave Request Workflow** — submit/approve/reject, manager role
+- [ ] **Attendance Tracking** — clock-in/out, daily records
+- [ ] **File Storage** — employee docs via Azure Blob, presigned upload URLs
+- [ ] **Email Notifications** — SendGrid (welcome email, password reset)
+- [ ] **API Versioning** — `/api/v1/` prefix
+- [ ] **Swagger Docs** — OpenAPI spec at `/api/docs`
+- [ ] **Frontend Deployment** — Vercel (free tier, zero config for React)
+- [ ] **Vue port** — if Maersk moves forward, rewrite the frontend in Vue 3 (same concepts, different syntax)
 
 ---
 
 ## Long-Term Vision (Post-Bachelor)
 
-- Subscription & billing layer (Stripe integration, per-seat pricing)
+- Subscription & billing (Stripe, per-seat pricing)
 - Event-driven architecture (audit events via message queues)
-- Read replicas for scaling read-heavy endpoints
-- SOC2 / GDPR compliance preparation (data retention, PII handling, right to erasure)
-- Performance monitoring and alerting (Azure Monitor or Datadog)
+- Read replicas for scaling
+- SOC2 / GDPR preparation (data retention, right to erasure)
+- Performance monitoring (Azure Monitor or Datadog)
 - Field-level diff tracking in audit logs
-- Multi-region deployment strategy
+- Multi-region deployment
 
 ---
 
 ## Phase Completion Tracker
 
-| Phase | Name | Status | CV Impact |
-|-------|------|--------|-----------|
-| 0 | Foundation | ✅ Done | Baseline — shows you can set up a project properly |
-| 1 | Dev Tooling | ⬜ | Low alone, but required before writing more code |
-| 2 | Security & API Hardening | ⬜ | Medium — refresh tokens and rate limiting are notable |
-| 3 | Infrastructure & CI/CD | ⬜ | High — Docker + CI is a green flag for any reviewer |
-| 4 | Multi-Tenant Core | ⬜ | Very High — most juniors never build multi-tenancy |
-| 5 | Core HR Module + Frontend | ⬜ | Very High — full-stack and demonstrable end-to-end |
-| ⭐ | **CV MILESTONE** | — | **Claim it on your CV from here** |
-| 6 | Tests | ⬜ | High — separates serious projects from side projects |
-| 7 | Cloud Deployment | ⬜ | Very High — live URL closes the deal in interviews |
+| Phase | Name | Status | Priority For Maersk |
+|-------|------|--------|---------------------|
+| 0 | Foundation | ✅ Done | — |
+| F1 | JS Fundamentals | ⬜ | 🔴 Do first — interview survival |
+| F2 | React Core + Frontend | ⬜ | 🔴 Do second — your demo |
+| 1 | Dev Tooling | ⬜ | 🟡 Before more backend code |
+| 2 | Security & API Hardening | ⬜ | 🟡 Notable for CV |
+| 3 | Infrastructure & CI/CD | ⬜ | 🟡 Green flag for reviewers |
+| 4 | Multi-Tenant Core | ⬜ | 🟢 Very high CV value |
+| 5 | Core HR Module + Full Frontend | ⬜ | 🟢 Full-stack demonstrable |
+| ⭐ | CV MILESTONE | — | Claim it here |
+| 6 | Tests | ⬜ | 🟢 Separates serious projects |
+| 7 | Cloud Deployment | ⬜ | 🟢 Live URL closes the deal |
