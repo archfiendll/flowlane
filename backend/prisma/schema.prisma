@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
 enum Role {
   employee
   manager
@@ -14,12 +16,218 @@ enum Role {
   super_admin
 }
 
+enum ContractType {
+  PERMANENT
+  FIXED_TERM
+}
+
+enum WorkingHours {
+  FULL
+  PARTIAL
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum VacationType {
+  ANNUAL
+  MEDICAL
+  PARENTAL
+  UNPAID
+}
+
+enum VacationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+// ─── Core Models ─────────────────────────────────────────────────────────────
+
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
   password     String
-  role         Role     @default(employee)
-  refreshToken String?  @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  role         Role      @default(employee)
+  refreshToken String?   @unique
+  companyId    Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  company      Company?  @relation(fields: [companyId], references: [id])
+  employee     Employee?
+}
+
+model Company {
+  id            Int              @id @default(autoincrement())
+  name          String
+  slug          String           @unique
+  legalAddress  String
+  city          String
+  country       String           // ISO code e.g. "RO", "GB", "DE"
+  bankName      String?
+  iban          String?
+  legalRepName  String
+  legalRepTitle String
+  deletedAt     DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  users         User[]
+  employees     Employee[]
+  departments   Department[]
+  invitations   Invitation[]
+  profileRO     CompanyProfileRO?  // Romanian-specific profile
+}
+
+model Department {
+  id          Int        @id @default(autoincrement())
+  companyId   Int
+  name        String
+  managerId   Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  company     Company    @relation(fields: [companyId], references: [id])
+  employees   Employee[]
+
+  @@unique([companyId, name])
+}
+
+model Invitation {
+  id         Int              @id @default(autoincrement())
+  companyId  Int
+  email      String
+  role       Role
+  token      String           @unique
+  status     InvitationStatus
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  company    Company          @relation(fields: [companyId], references: [id])
+}
+
+model Employee {
+  id              Int            @id @default(autoincrement())
+  companyId       Int
+  userId          Int?           @unique
+  departmentId    Int?
+
+  // Universal personal data
+  firstName       String
+  lastName        String
+  dateOfBirth     DateTime
+  placeOfBirth    String
+  nationality     String
+  citizenship     String
+  studies         String
+  phone           String?
+  personalEmail   String?
+
+  // Universal address
+  address         String
+  city            String
+  region          String         // county / state / province
+  country         String         // ISO code e.g. "RO", "GB"
+  postalCode      String?
+
+  // Universal employment data
+  jobTitle        String
+  workLocation    String
+  startDate       DateTime
+  contractType    ContractType
+  contractEndDate DateTime?      // only for FIXED_TERM
+  contractNumber  String
+  contractDate    DateTime
+  workingHours    WorkingHours
+  partialHours    Float?         // e.g. 4.0 for half time
+  probationDays   Int
+  grossSalary     Float
+  currency        String         // ISO code e.g. "RON", "GBP", "EUR"
+
+  // Universal vacation
+  vacationDaysPerYear Int
+  vacationDaysUsed    Int
+  vacationCarryOver   Int
+
+  // Status
+  status          EmployeeStatus
+  deletedAt       DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  company          Company           @relation(fields: [companyId], references: [id])
+  user             User?             @relation(fields: [userId], references: [id])
+  department       Department?       @relation(fields: [departmentId], references: [id])
+  vacationRequests VacationRequest[]
+  profileRO        EmployeeProfileRO? // Romanian-specific profile
+
+  @@unique([companyId, contractNumber])
+}
+
+model VacationRequest {
+  id          Int            @id @default(autoincrement())
+  employeeId  Int
+  companyId   Int
+  type        VacationType
+  startDate   DateTime
+  endDate     DateTime
+  days        Int
+  status      VacationStatus
+  approvedBy  Int?
+  note        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  employee    Employee       @relation(fields: [employeeId], references: [id])
+
+  @@index([employeeId])
+  @@index([companyId])
+}
+
+// ─── Romanian Profiles ───────────────────────────────────────────────────────
+// These tables only exist for Romanian companies/employees.
+// For UK, DE, etc. — add CompanyProfileUK, EmployeeProfileUK etc.
+
+model CompanyProfileRO {
+  id            Int      @id @default(autoincrement())
+  companyId     Int      @unique
+  cui           String   @unique  // Cod Unic de Inregistrare
+  caenCode      String            // Activity classification code
+  county        String            // Judet
+  tradeRegister String?           // Nr. registrul comertului (e.g. J12/123/2020)
+  vatPayer      Boolean           // Platitor TVA
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  company       Company  @relation(fields: [companyId], references: [id])
+}
+
+model EmployeeProfileRO {
+  id             Int      @id @default(autoincrement())
+  employeeId     Int      @unique
+  cnp            String            // Cod Numeric Personal (13 digits)
+  ciSeries       String            // e.g. "RX"
+  ciNumber       String
+  ciIssuedBy     String            // e.g. "SPCLEP Cluj-Napoca"
+  ciIssuedAt     DateTime
+  ciExpiresAt    DateTime
+  corCode        String            // Romanian job classification code
+  reviSalNumber  String?           // REVISAL registration number
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  employee       Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([cnp])
 }
