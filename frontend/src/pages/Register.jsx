@@ -26,12 +26,11 @@ export default function Register() {
       await api.post("/auth/register", { email, password });
       // Auto-login after register
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("accessToken", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("accessToken", res.data.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.data.user));
       navigate("/dashboard", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.");
-    } finally {
+        setError(err.response?.data?.error?.message || "Registration failed. Please try again.");    } finally {
       setLoading(false);
     }
   };

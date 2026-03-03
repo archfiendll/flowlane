@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const { JWT_SECRET } = require('../config/jwt');
+const { sendError } = require('../utils/response');
+const errorCodes = require('../utils/errorCodes');
 
 async function requireAuth(req, res, next) {
   try {
@@ -8,19 +10,25 @@ async function requireAuth(req, res, next) {
     const [type, token] = header.split(' ');
 
     if (type !== 'Bearer' || !token) {
-      return res.status(401).json({ message: 'Missing or invalid Authorization header' });
+      return sendError(res, 'Missing or invalid Authorization header', errorCodes.AUTH_003, 401);
     }
 
     let payload;
     try {
       payload = jwt.verify(token, JWT_SECRET);
-    } catch {
-      return res.status(401).json({ message: 'Invalid or expired token' });
+    } catch (err) {
+      const isExpired = err.name === 'TokenExpiredError';
+      return sendError(
+        res,
+        isExpired ? 'Token expired' : 'Invalid token',
+        isExpired ? errorCodes.AUTH_002 : errorCodes.AUTH_003,
+        401,
+      );
     }
 
     const userId = Number(payload.sub);
     if (!userId) {
-      return res.status(401).json({ message: 'Invalid token payload' });
+      return sendError(res, 'Invalid token payload', errorCodes.AUTH_003, 401);
     }
 
     const user = await prisma.user.findUnique({
@@ -29,7 +37,7 @@ async function requireAuth(req, res, next) {
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return sendError(res, 'User not found', errorCodes.AUTH_003, 401);
     }
 
     req.user = user;
@@ -41,9 +49,9 @@ async function requireAuth(req, res, next) {
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user) return sendError(res, 'Unauthorized', errorCodes.AUTH_003, 401);
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      return sendError(res, 'Forbidden', errorCodes.AUTH_004, 403);
     }
     return next();
   };

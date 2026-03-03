@@ -1,9 +1,10 @@
 const asyncHandler = require('../utils/asyncHandler');
 const userService = require('../services/user.service');
+const { sendSuccess } = require('../utils/response');
 
 const listUsers = asyncHandler(async (req, res) => {
   const users = await userService.listUsers();
-  return res.status(200).json({ ok: true, data: users });
+  return sendSuccess(res, users);
 });
 
 module.exports = {

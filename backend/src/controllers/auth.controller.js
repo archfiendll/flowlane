@@ -1,24 +1,26 @@
 const { registerSchema, loginSchema } = require('../validators/auth.validators');
 const authService = require('../services/auth.service');
+const { sendSuccess, sendError } = require('../utils/response');
+const errorCodes = require('../utils/errorCodes');
 
 async function register(req, res) {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ message: 'Validation error', errors: parsed.error.flatten() });
+    return sendError(res, 'Validation failed', errorCodes.VALIDATION_001, 400);
   }
 
   const user = await authService.register(parsed.data);
-  return res.status(201).json({ ok: true, user });
+  return sendSuccess(res, { user }, 201);
 }
 
 async function login(req, res) {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
-    return res.status(400).json({ message: 'Validation error', errors: parsed.error.flatten() });
+    return sendError(res, 'Validation failed', errorCodes.VALIDATION_001, 400);
   }
 
   const result = await authService.login(parsed.data);
-  return res.json({ ok: true, ...result });
+  return sendSuccess(res, result);
 }
 
 module.exports = { register, login };

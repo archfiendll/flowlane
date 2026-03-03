@@ -36,7 +36,7 @@ export default function Dashboard() {
       setLoading(true);
       try {
         const res = await api.get("/auth/me");
-        if (!cancelled) setMe(res.data.user);
+        if (!cancelled) setMe(res.data.data);
       } catch {
         if (!cancelled) setError("Failed to load profile.");
       } finally {
