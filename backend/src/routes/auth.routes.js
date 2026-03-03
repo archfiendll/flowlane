@@ -1,13 +1,15 @@
-const router = require('express').Router();
-const authController = require('../controllers/auth.controller');
+const express = require('express');
+const asyncHandler = require('../utils/asyncHandler');
+const { register, login, refreshToken, logout } = require('../controllers/auth.controller');
 const { requireAuth } = require('../middleware/auth.middleware');
+const { sendSuccess } = require('../utils/response');
 
-router.post('/register', (req, res, next) => authController.register(req, res).catch(next));
+const router = express.Router();
 
-router.post('/login', (req, res, next) => authController.login(req, res).catch(next));
-
-router.get('/me', requireAuth, (req, res) => {
-  res.json({ ok: true, user: req.user });
-});
+router.post('/register', asyncHandler(register));
+router.post('/login', asyncHandler(login));
+router.get('/me', requireAuth, asyncHandler(async (req, res) => sendSuccess(res, req.user)));
+router.post('/refresh', asyncHandler(refreshToken));
+router.post('/logout', requireAuth, asyncHandler(logout));
 
 module.exports = router;

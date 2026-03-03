@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/jwt');
@@ -14,11 +15,7 @@ async function register({ email, password, role }) {
   const hashed = await bcrypt.hash(password, 12);
 
   const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashed,
-      role: role || undefined,
-    },
+    data: { email, password: hashed, role: role || undefined },
     select: { id: true, email: true, role: true, createdAt: true },
   });
 
@@ -40,14 +37,78 @@ async function login({ email, password }) {
     throw err;
   }
 
-  const token = jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+  // Generate access token — short lived
+  const accessToken = jwt.sign(
+    { sub: user.id, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  // Generate refresh token — random bytes, store hash in DB
+  const rawRefreshToken = crypto.randomBytes(64).toString('hex');
+  const hashedRefreshToken = await bcrypt.hash(rawRefreshToken, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken: hashedRefreshToken },
   });
 
   return {
-    token,
+    token: accessToken,
+    refreshToken: rawRefreshToken,
     user: { id: user.id, email: user.email, role: user.role },
   };
 }
 
-module.exports = { register, login };
+async function refresh(rawRefreshToken) {
+  if (!rawRefreshToken) {
+    const err = new Error('Refresh token required');
+    err.status = 401;
+    throw err;
+  }
+
+  const users = await prisma.user.findMany({
+    where: { refreshToken: { not: null } },
+    select: { id: true, email: true, role: true, refreshToken: true },
+  });
+
+  // Check all users in parallel instead of a loop
+  const results = await Promise.all(
+    users.map(async (u) => {
+      const match = await bcrypt.compare(rawRefreshToken, u.refreshToken);
+      return match ? u : null;
+    })
+  );
+  const matchedUser = results.find((u) => u !== null);
+
+  if (!matchedUser) {
+    const err = new Error('Invalid refresh token');
+    err.status = 401;
+    throw err;
+  }
+
+  const accessToken = jwt.sign(
+    { sub: matchedUser.id, role: matchedUser.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+
+  const newRawRefreshToken = crypto.randomBytes(64).toString('hex');
+  const newHashedRefreshToken = await bcrypt.hash(newRawRefreshToken, 10);
+
+  await prisma.user.update({
+    where: { id: matchedUser.id },
+    data: { refreshToken: newHashedRefreshToken },
+  });
+
+  return { token: accessToken, refreshToken: newRawRefreshToken };
+}
+
+async function logout(userId) {
+  await prisma.user.update({
+    where: { id: userId },
+    data: { refreshToken: null },
+  });
+}
+
+module.exports = { register, login, refresh, logout };
