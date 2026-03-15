@@ -1,13 +1,13 @@
 # Flowlane — Project Tracker
-**Stack:** Node.js · Express · PostgreSQL · Prisma · JWT · React · Docker · Azure  
+**Stack:** Node.js · Express · PostgreSQL · Prisma · JWT · React · Docker · Azure · Claude AI  
 **Author:** Illia Savytskyi · Bachelor Project + CV + Maersk Prep
 
 ---
 
 ## 🎯 Current Focus
-**→ Step 1: Run the new database migration**  
-**→ Step 2: Build Company registration flow**  
-**→ Step 3: Employee CRUD**
+**→ Step 4: Send Invite button on Employee row**
+**→ Step 5: Company Setup page**
+**→ Step 6: Dashboard live counts**
 
 ---
 
@@ -52,47 +52,51 @@
 
 ---
 
-## ✅ Phase F2 — Frontend
+## ✅ Phase F2 — Frontend Foundation
 | Task | Status |
 |------|--------|
 | Vite + React + Tailwind CSS | ✅ |
 | Axios client with request/response interceptors | ✅ |
 | `ProtectedRoute` — redirects to login if no token | ✅ |
 | `MainLayout` — collapsible sidebar, topbar, logout | ✅ |
+| Role-based sidebar — employees see only their pages | ✅ |
 | `Login` page — show/hide password, errors | ✅ |
-| `Register` page — live password rules, auto-login | ✅ |
+| `Register` page — company name + live password rules + auto-login | ✅ |
+| `AcceptInvite` page — token validation + password setup + auto-login | ✅ |
 | `Dashboard` — stat cards, system info | ✅ |
-| `Employees` — table, skeleton loading, role badges | ✅ |
+| `Employees` — table, skeleton loading, status badges | ✅ |
 
 ---
 
-## 🔴 Phase 4 — Multi-Tenant Core ← DO THIS NEXT
+## ✅ Phase 4 — Multi-Tenant Core
 
-### Database changes
+### Database
 | Task | Status |
 |------|--------|
-| Add `Company` model to schema.prisma | ⬜ |
-| Add `CompanyProfileRO` model (Romanian-specific fields) | ⬜ |
-| Add `Employee` model (universal fields) | ⬜ |
-| Add `EmployeeProfileRO` model (CNP, CI, COR code etc.) | ⬜ |
-| Add `Department` model | ⬜ |
-| Add `VacationRequest` model | ⬜ |
-| Add `Invitation` model | ⬜ |
-| Run migration `add_full_schema` | ⬜ |
+| `Company` model | ✅ |
+| `CompanyProfileRO` model | ✅ |
+| `Employee` model (universal fields, optional non-essentials) | ✅ |
+| `EmployeeProfileRO` model | ✅ |
+| `Department` model | ✅ |
+| `VacationRequest` model | ✅ |
+| `Invitation` model | ✅ |
+| Migration `add_full_schema` | ✅ |
+| Migration `make_employee_fields_optional` | ✅ |
 
 ### Registration & invite flow
 | Task | Status |
 |------|--------|
-| Register → creates Company + user becomes Admin | ⬜ |
-| Admin sends invite link to employee email | ⬜ |
-| Employee accepts invite → sets password → joins company | ⬜ |
+| Register → creates Company + user becomes Admin | ✅ |
+| `companyId` included in JWT + login response | ✅ |
+| Admin sends invite email via Resend | ✅ |
+| Employee accepts invite → sets password → joins company | ✅ |
+| Send Invite button on employee row | ⬜ |
 
 ### Tenant isolation
 | Task | Status |
 |------|--------|
-| `tenant.middleware.js` — attach `req.companyId` from token | ⬜ |
-| `assertTenant.js` — block cross-company data access | ⬜ |
-| All queries scoped to `companyId` | ⬜ |
+| `tenant.middleware.js` — attach `req.companyId` from token | ✅ |
+| All queries scoped to `companyId` | ✅ |
 
 ### Audit log
 | Task | Status |
@@ -102,29 +106,34 @@
 
 ---
 
-## 🔴 Phase 5 — Core HR Module
+## 🔴 Phase 5 — Core HR Module ← IN PROGRESS
 
 ### Backend
 | Task | Status |
 |------|--------|
-| `employee.service.js` — create, list, get, update, deactivate | ⬜ |
+| `employee.service.js` — create, list, get, update, deactivate | ✅ |
+| `employee.controller.js` + `employee.routes.js` | ✅ |
+| `invitation.service.js` — create, accept, getByToken | ✅ |
+| `email.service.js` — Resend integration | ✅ |
 | `department.service.js` — CRUD + employee count | ⬜ |
 | `vacation.service.js` — request, approve, reject, balance | ⬜ |
-| `pagination.js` utility — `{ data, meta: { total, page, limit } }` | ⬜ |
-| All routes with auth + role + tenant middleware | ⬜ |
+| `pagination.js` utility — `{ data, meta: { total, page, limit } }` | ✅ |
+| All routes with auth + role + tenant middleware | ✅ |
 
 ### Frontend
 | Task | Status |
 |------|--------|
-| Employees page — create modal | ⬜ |
+| Employees page — 4-step create modal | ✅ |
+| Employees page — Send Invite button per row | ⬜ |
 | Employees page — edit modal | ⬜ |
 | Employees page — deactivate + confirm dialog | ⬜ |
 | Employees page — pagination + status filter | ⬜ |
+| Employee profile page — full details view | ⬜ |
 | Departments page — full CRUD | ⬜ |
 | Vacation page — submit request | ⬜ |
 | Vacation page — approve / reject (admin) | ⬜ |
 | Dashboard — live counts (employees, departments, pending vacations) | ⬜ |
-| Company setup page — fill company profile after register | ⬜ |
+| Company setup page — fill legal details, CUI, address after register | ⬜ |
 
 ---
 
@@ -137,6 +146,25 @@
 | Store PDF reference in DB | ⬜ |
 | Frontend — "Generate Contract" button on employee profile | ⬜ |
 | Azure Blob Storage — store PDFs, presigned download URL | ⬜ |
+
+---
+
+## 🟢 Phase 5c — AI HR Assistant (Wow Feature)
+
+> Employees and managers can chat with an AI assistant powered by Claude API.
+> The assistant has context about the company's HR policies, vacation balance,
+> and can answer questions like "How many vacation days do I have left?" or
+> "What is the notice period in my contract?"
+
+| Task | Status |
+|------|--------|
+| `POST /ai/chat` backend endpoint | ⬜ |
+| Claude API integration with company + employee context injection | ⬜ |
+| Conversation history — store per employee in DB | ⬜ |
+| Role-aware responses — employee sees own data, manager sees team | ⬜ |
+| Frontend — chat widget in sidebar (all roles) | ⬜ |
+| Frontend — chat page `/chat` with message history | ⬜ |
+| Suggested questions based on role | ⬜ |
 
 ---
 
@@ -174,8 +202,7 @@
 
 ---
 
-## 📋 Database Schema Plan
-
+## 📋 Database Schema
 ```
 Company (universal)
   └── CompanyProfileRO    → CUI, CAEN, trade register (Romania only)
@@ -187,32 +214,33 @@ Department
 VacationRequest
 Invitation
 AuditLog
+ChatMessage             ← new (AI assistant history)
 ```
-
-> Adding UK/DE support later = just add CompanyProfileUK / EmployeeProfileUK.
-> Core models never change.
 
 ---
 
 ## 💼 CV Line (ready to use after Phase 5)
-
 ```
 Flowlane – HR Operations SaaS                                    2026
 Node.js · Express · PostgreSQL · Prisma · JWT · React · Docker · Azure
 
-• Full-stack multi-tenant SaaS — layered backend + React frontend
-• JWT auth with refresh token rotation (15m access / 30d refresh)
-• Romanian labor law compliant — CIM contracts, CNP/CI validation, REVISAL
-• PDF contract generation from employee + company data
-• Multi-tenant isolation — all queries scoped to companyId
-• Docker + GitHub Actions CI/CD + Azure deployment
+- Full-stack multi-tenant SaaS — layered backend + React frontend
+- JWT auth with refresh token rotation (15m access / 30d refresh)
+- Romanian labor law compliant — CIM contracts, CNP/CI validation, REVISAL
+- PDF contract generation from employee + company data
+- AI-powered HR assistant — Claude API with employee context injection
+- Multi-tenant isolation — all queries scoped to companyId
+- Docker + GitHub Actions CI/CD + Azure deployment
 ```
 
 ---
 
 ## 🎯 Maersk Interview Cheat Sheet
 
-**Say this:** "I built the full stack myself — Express backend with JWT refresh token rotation and RBAC, React frontend with protected routes and axios interceptors."
+**Say this:** "I built the full stack myself — Express backend with JWT refresh
+token rotation and RBAC, React frontend with protected routes and axios
+interceptors. I also integrated the Claude API to build an AI HR assistant
+that's context-aware per employee and company."
 
 **Study these before the interview:**
 - `map`, `filter`, `reduce` — write from memory
@@ -220,3 +248,6 @@ Node.js · Express · PostgreSQL · Prisma · JWT · React · Docker · Azure
 - `useState`, `useEffect`, props
 - What is the virtual DOM
 - What is a controlled component
+- What is multi-tenancy and how do you implement it
+- What is a JWT and what goes inside it
+- What is bcrypt and why do we hash passwords

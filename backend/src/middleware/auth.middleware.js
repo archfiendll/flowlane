@@ -31,10 +31,10 @@ async function requireAuth(req, res, next) {
       return sendError(res, 'Invalid token payload', errorCodes.AUTH_003, 401);
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, role: true, createdAt: true },
-    });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, role: true, companyId: true, createdAt: true },
+  });
 
     if (!user) {
       return sendError(res, 'User not found', errorCodes.AUTH_003, 401);

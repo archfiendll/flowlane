@@ -8,8 +8,8 @@ async function register(req, res) {
   if (!parsed.success) {
     return sendError(res, 'Validation failed', errorCodes.VALIDATION_001, 400);
   }
-  const user = await authService.register(parsed.data);
-  return sendSuccess(res, { user }, 201);
+  const { user, company } = await authService.register(parsed.data);
+  return sendSuccess(res, { user, company }, 201);
 }
 
 async function login(req, res) {

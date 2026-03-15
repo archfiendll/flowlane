@@ -12,7 +12,7 @@ const passwordPolicy = z
 const registerSchema = z.object({
   email: z.string().email('Invalid email').trim().toLowerCase(),
   password: passwordPolicy,
-  role: z.string().min(2).max(50).optional(), // keep for now (later: lock to enum)
+  companyName: z.string().min(2, 'Company name must be at least 2 characters').max(100),
 });
 
 const loginSchema = z.object({

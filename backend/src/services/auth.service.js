@@ -3,8 +3,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const { JWT_SECRET, JWT_EXPIRES_IN } = require('../config/jwt');
-
-async function register({ email, password, role }) {
+async function register({ email, password, companyName }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     const err = new Error('Email already in use');
@@ -14,16 +13,41 @@ async function register({ email, password, role }) {
 
   const hashed = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
-    data: { email, password: hashed, role: role || undefined },
-    select: { id: true, email: true, role: true, createdAt: true },
+  const result = await prisma.$transaction(async (tx) => {
+    const company = await tx.company.create({
+      data: {
+        name: companyName,
+        slug: companyName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') + '-' + crypto.randomBytes(3).toString('hex'),
+        legalAddress: '',
+        city: '',
+        country: '',
+        legalRepName: '',
+        legalRepTitle: '',
+      },
+    });
+
+    const user = await tx.user.create({
+      data: {
+        email,
+        password: hashed,
+        role: 'admin',
+        companyId: company.id,
+      },
+      select: { id: true, email: true, role: true, companyId: true, createdAt: true },
+    });
+
+
+    return { user, company };
   });
 
-  return user;
+  return result;
 }
 
 async function login({ email, password }) {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true, role: true, companyId: true, password: true, },
+  });
   if (!user) {
     const err = new Error('Invalid credentials');
     err.status = 401;
@@ -37,14 +61,12 @@ async function login({ email, password }) {
     throw err;
   }
 
-  // Generate access token — short lived
   const accessToken = jwt.sign(
-    { sub: user.id, role: user.role },
+    { sub: user.id, role: user.role, companyId: user.companyId },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
 
-  // Generate refresh token — random bytes, store hash in DB
   const rawRefreshToken = crypto.randomBytes(64).toString('hex');
   const hashedRefreshToken = await bcrypt.hash(rawRefreshToken, 10);
 
@@ -56,7 +78,7 @@ async function login({ email, password }) {
   return {
     token: accessToken,
     refreshToken: rawRefreshToken,
-    user: { id: user.id, email: user.email, role: user.role },
+    user: { id: user.id, email: user.email, role: user.role, companyId: user.companyId },
   };
 }
 

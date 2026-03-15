@@ -13,6 +13,7 @@ const passwordRules = [
 export default function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,7 +24,7 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      await api.post("/auth/register", { email, password });
+      await api.post("/auth/register", { email, password, companyName });
       // Auto-login after register
       const res = await api.post("/auth/login", { email, password });
         localStorage.setItem("accessToken", res.data.data.token);
@@ -90,6 +91,19 @@ export default function Register() {
             </p>
 
             <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                          <div>
+                <label style={labelStyle}>Company name</label>
+                <input
+                  type="text"
+                  placeholder="Acme Corp"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  required
+                  style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = "#1d6fc4"}
+                  onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+                />
+              </div>
               <div>
                 <label style={labelStyle}>Email address</label>
                 <input

@@ -73,7 +73,7 @@ model Company {
   slug          String           @unique
   legalAddress  String
   city          String
-  country       String           // ISO code e.g. "RO", "GB", "DE"
+  country       String
   bankName      String?
   iban          String?
   legalRepName  String
@@ -86,7 +86,7 @@ model Company {
   employees     Employee[]
   departments   Department[]
   invitations   Invitation[]
-  profileRO     CompanyProfileRO?  // Romanian-specific profile
+  profileRO     CompanyProfileRO?
 }
 
 model Department {
@@ -126,42 +126,42 @@ model Employee {
   // Universal personal data
   firstName       String
   lastName        String
-  dateOfBirth     DateTime
-  placeOfBirth    String
-  nationality     String
-  citizenship     String
-  studies         String
+  dateOfBirth     DateTime?
+  placeOfBirth    String?
+  nationality     String?
+  citizenship     String?
+  studies         String?
   phone           String?
   personalEmail   String?
 
   // Universal address
-  address         String
-  city            String
-  region          String         // county / state / province
-  country         String         // ISO code e.g. "RO", "GB"
+  address         String?
+  city            String?
+  region          String?
+  country         String?
   postalCode      String?
 
   // Universal employment data
   jobTitle        String
-  workLocation    String
+  workLocation    String?
   startDate       DateTime
   contractType    ContractType
-  contractEndDate DateTime?      // only for FIXED_TERM
+  contractEndDate DateTime?
   contractNumber  String
   contractDate    DateTime
   workingHours    WorkingHours
-  partialHours    Float?         // e.g. 4.0 for half time
-  probationDays   Int
+  partialHours    Float?
+  probationDays   Int?
   grossSalary     Float
-  currency        String         // ISO code e.g. "RON", "GBP", "EUR"
+  currency        String
 
   // Universal vacation
   vacationDaysPerYear Int
-  vacationDaysUsed    Int
-  vacationCarryOver   Int
+  vacationDaysUsed    Int        @default(0)
+  vacationCarryOver   Int        @default(0)
 
   // Status
-  status          EmployeeStatus
+  status          EmployeeStatus @default(ACTIVE)
   deletedAt       DateTime?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -170,7 +170,7 @@ model Employee {
   user             User?             @relation(fields: [userId], references: [id])
   department       Department?       @relation(fields: [departmentId], references: [id])
   vacationRequests VacationRequest[]
-  profileRO        EmployeeProfileRO? // Romanian-specific profile
+  profileRO        EmployeeProfileRO?
 
   @@unique([companyId, contractNumber])
 }
@@ -196,17 +196,15 @@ model VacationRequest {
 }
 
 // ─── Romanian Profiles ───────────────────────────────────────────────────────
-// These tables only exist for Romanian companies/employees.
-// For UK, DE, etc. — add CompanyProfileUK, EmployeeProfileUK etc.
 
 model CompanyProfileRO {
   id            Int      @id @default(autoincrement())
   companyId     Int      @unique
-  cui           String   @unique  // Cod Unic de Inregistrare
-  caenCode      String            // Activity classification code
-  county        String            // Judet
-  tradeRegister String?           // Nr. registrul comertului (e.g. J12/123/2020)
-  vatPayer      Boolean           // Platitor TVA
+  cui           String   @unique
+  caenCode      String
+  county        String
+  tradeRegister String?
+  vatPayer      Boolean
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -216,14 +214,14 @@ model CompanyProfileRO {
 model EmployeeProfileRO {
   id             Int      @id @default(autoincrement())
   employeeId     Int      @unique
-  cnp            String            // Cod Numeric Personal (13 digits)
-  ciSeries       String            // e.g. "RX"
+  cnp            String
+  ciSeries       String
   ciNumber       String
-  ciIssuedBy     String            // e.g. "SPCLEP Cluj-Napoca"
+  ciIssuedBy     String
   ciIssuedAt     DateTime
   ciExpiresAt    DateTime
-  corCode        String            // Romanian job classification code
-  reviSalNumber  String?           // REVISAL registration number
+  corCode        String
+  reviSalNumber  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
