@@ -15,7 +15,7 @@ function StatCard({ label, value, sub, accentColor }) {
       <p style={{
         fontSize: 11, fontWeight: 700, color: "#94a3b8",
         letterSpacing: "1.5px", textTransform: "uppercase",
-        marginBottom: 8, margin: "0 0 8px 0",
+        margin: "0 0 8px 0",
       }}>{label}</p>
       <p style={{ fontSize: 26, fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
         {value}
@@ -25,20 +25,51 @@ function StatCard({ label, value, sub, accentColor }) {
   );
 }
 
+function QuickLink({ to, title, sub }) {
+  return (
+    <Link
+      to={to}
+      style={{
+        display: "inline-block", padding: "16px 20px",
+        backgroundColor: "#fff", border: "1px solid #e2e8f0",
+        borderRadius: 12, textDecoration: "none", minWidth: 180,
+        transition: "border-color 0.15s, box-shadow 0.15s",
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = "#1d6fc4";
+        e.currentTarget.style.boxShadow = "0 4px 16px rgba(29,111,196,0.12)";
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = "#e2e8f0";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      <p style={{ fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
+        {title} →
+      </p>
+      <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>{sub}</p>
+    </Link>
+  );
+}
+
 export default function Dashboard() {
-  const [me, setMe] = useState(null);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  const role = user?.role;
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setLoading(true);
       try {
-        const res = await api.get("/auth/me");
-        if (!cancelled) setMe(res.data.data);
+        const res = await api.get("/dashboard/stats");
+        if (!cancelled) setStats(res.data.data);
       } catch {
-        if (!cancelled) setError("Failed to load profile.");
+        if (!cancelled) setError("Failed to load dashboard.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -56,6 +87,10 @@ export default function Dashboard() {
     }}>{error}</div>
   );
 
+  const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric",
+  }) : "—";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
 
@@ -66,84 +101,104 @@ export default function Dashboard() {
         </h1>
         <p style={{ fontSize: 13, color: "#94a3b8", margin: 0 }}>
           Welcome back,{" "}
-          <span style={{ color: "#475569", fontWeight: 600 }}>{me?.email}</span>
+          <span style={{ color: "#475569", fontWeight: 600 }}>{user?.email}</span>
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <StatCard label="System Status" value="Online" sub="All services operational" accentColor="#10b981" />
-        <StatCard
-          label="Signed in as"
-          value={me?.role?.charAt(0).toUpperCase() + me?.role?.slice(1)}
-          sub={me?.email}
-          accentColor="#1d6fc4"
-        />
-        <StatCard label="Platform" value="Flowlane" sub="HR Operations" accentColor="#003580" />
-      </div>
+      {/* Admin / Manager view */}
+      {(role === "admin" || role === "manager") && (
+        <>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <StatCard
+              label="Active Employees"
+              value={stats.totalEmployees}
+              sub="In your company"
+              accentColor="#1d6fc4"
+            />
+            <StatCard
+              label="Departments"
+              value={stats.totalDepartments}
+              sub="Across the company"
+              accentColor="#003580"
+            />
+            <StatCard
+              label="Pending Vacations"
+              value={stats.pendingVacations}
+              sub="Awaiting approval"
+              accentColor={stats.pendingVacations > 0 ? "#f59e0b" : "#10b981"}
+            />
+          </div>
 
-      {/* Quick access */}
-      <div>
-        <p style={{
-          fontSize: 11, fontWeight: 700, color: "#94a3b8",
-          letterSpacing: "2px", textTransform: "uppercase",
-          marginBottom: 12, margin: "0 0 12px 0",
-        }}>Quick Access</p>
-        <Link
-          to="/employees"
-          style={{
-            display: "inline-block", padding: "16px 20px",
-            backgroundColor: "#fff", border: "1px solid #e2e8f0",
-            borderRadius: 12, textDecoration: "none", minWidth: 180,
-            transition: "border-color 0.15s, box-shadow 0.15s",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.borderColor = "#1d6fc4";
-            e.currentTarget.style.boxShadow = "0 4px 16px rgba(29,111,196,0.12)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.borderColor = "#e2e8f0";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#1e293b", margin: "0 0 4px 0" }}>
-            Employees →
-          </p>
-          <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>View and manage staff</p>
-        </Link>
-      </div>
-
-      {/* System info table */}
-      <div>
-        <p style={{
-          fontSize: 11, fontWeight: 700, color: "#94a3b8",
-          letterSpacing: "2px", textTransform: "uppercase",
-          margin: "0 0 12px 0",
-        }}>System Information</p>
-        <div style={{
-          backgroundColor: "#fff", border: "1px solid #e2e8f0",
-          borderRadius: 12, overflow: "hidden", maxWidth: 560,
-        }}>
-          {[
-            { label: "Authentication", value: "JWT · Stateless" },
-            { label: "Access Control", value: "Role-Based (RBAC)" },
-            { label: "Current Role", value: me?.role?.toUpperCase() },
-            { label: "Backend", value: "Express · PostgreSQL · Prisma" },
-          ].map((row, i, arr) => (
-            <div key={row.label} style={{
-              display: "flex", alignItems: "center",
-              padding: "12px 20px",
-              borderBottom: i < arr.length - 1 ? "1px solid #f1f5f9" : "none",
-            }}>
-              <span style={{
-                width: 180, fontSize: 11, fontWeight: 700,
-                color: "#94a3b8", letterSpacing: "1px", textTransform: "uppercase",
-              }}>{row.label}</span>
-              <span style={{ fontSize: 13, color: "#334155", fontWeight: 500 }}>{row.value}</span>
+          <div>
+            <p style={{
+              fontSize: 11, fontWeight: 700, color: "#94a3b8",
+              letterSpacing: "2px", textTransform: "uppercase",
+              margin: "0 0 12px 0",
+            }}>Quick Access</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <QuickLink to="/employees" title="Employees" sub="View and manage staff" />
+              <QuickLink to="/departments" title="Departments" sub="Manage departments" />
+              <QuickLink to="/vacations" title="Vacations" sub="Review requests" />
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+
+      {/* Employee view */}
+      {role === "employee" && (
+        <>
+          {stats.employee ? (
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <StatCard
+                label="Vacation Days Left"
+                value={
+                  (stats.employee.vacationDaysPerYear + stats.employee.vacationCarryOver)
+                  - stats.employee.vacationDaysUsed
+                }
+                sub={`${stats.employee.vacationDaysUsed} used · ${stats.employee.vacationCarryOver} carried over`}
+                accentColor="#10b981"
+              />
+              <StatCard
+                label="Job Title"
+                value={stats.employee.jobTitle}
+                sub={stats.employee.department?.name ?? "No department"}
+                accentColor="#1d6fc4"
+              />
+              <StatCard
+                label="Contract"
+                value={stats.employee.contractType === "PERMANENT" ? "Permanent" : "Fixed Term"}
+                sub={`Since ${formatDate(stats.employee.startDate)}`}
+                accentColor="#003580"
+              />
+              <StatCard
+                label="Pending Requests"
+                value={stats.pendingVacations}
+                sub="Vacation requests"
+                accentColor={stats.pendingVacations > 0 ? "#f59e0b" : "#10b981"}
+              />
+            </div>
+          ) : (
+            <div style={{
+              padding: "20px 24px", backgroundColor: "#fffbeb",
+              border: "1px solid #fde68a", borderRadius: 12,
+              fontSize: 13, color: "#92400e",
+            }}>
+              Your employee profile hasn't been set up yet. Contact your admin.
+            </div>
+          )}
+
+          <div>
+            <p style={{
+              fontSize: 11, fontWeight: 700, color: "#94a3b8",
+              letterSpacing: "2px", textTransform: "uppercase",
+              margin: "0 0 12px 0",
+            }}>Quick Access</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <QuickLink to="/vacations" title="Vacations" sub="Request time off" />
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ async function listEmployees(companyId, { page = 1, limit = 20, status } = {}) {
         startDate: true,
         grossSalary: true,
         currency: true,
+        personalEmail: true,
         department: { select: { id: true, name: true } },
         user: { select: { id: true, email: true } },
         createdAt: true,

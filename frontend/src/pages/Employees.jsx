@@ -62,37 +62,34 @@ function AddEmployeeModal({ onClose, onSaved }) {
   const [error, setError] = useState("");
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
-
   const next = () => setStep(s => Math.min(s + 1, STEPS.length - 1));
   const back = () => setStep(s => Math.max(s - 1, 0));
 
   const submit = async () => {
-  setSaving(true);
-  setError("");
-  try {
-    const toDate = (val) => val ? new Date(val).toISOString() : null;
-
-    const payload = {
-      ...form,
-      dateOfBirth: toDate(form.dateOfBirth),
-      startDate: toDate(form.startDate),
-      contractDate: toDate(form.contractDate),
-      contractEndDate: toDate(form.contractEndDate),
-      probationDays: form.probationDays ? parseInt(form.probationDays) : null,
-      grossSalary: parseFloat(form.grossSalary),
-      vacationDaysPerYear: parseInt(form.vacationDaysPerYear),
-      partialHours: form.partialHours ? parseFloat(form.partialHours) : null,
-    };
-
-    await api.post("/employees", payload);
-    onSaved();
-    onClose();
-  } catch (err) {
-    setError(err.response?.data?.error?.message || "Failed to create employee.");
-  } finally {
-    setSaving(false);
-  }
-};
+    setSaving(true);
+    setError("");
+    try {
+      const toDate = (val) => val ? new Date(val).toISOString() : null;
+      const payload = {
+        ...form,
+        dateOfBirth: toDate(form.dateOfBirth),
+        startDate: toDate(form.startDate),
+        contractDate: toDate(form.contractDate),
+        contractEndDate: toDate(form.contractEndDate),
+        probationDays: form.probationDays ? parseInt(form.probationDays) : null,
+        grossSalary: parseFloat(form.grossSalary),
+        vacationDaysPerYear: parseInt(form.vacationDaysPerYear),
+        partialHours: form.partialHours ? parseFloat(form.partialHours) : null,
+      };
+      await api.post("/employees", payload);
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.error?.message || "Failed to create employee.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div style={{
@@ -283,7 +280,6 @@ function AddEmployeeModal({ onClose, onSaved }) {
           >
             {step === 0 ? "Cancel" : "← Back"}
           </button>
-
           {step < STEPS.length - 1 ? (
             <button onClick={next} style={{
               padding: "9px 20px", backgroundColor: "#1d6fc4",
@@ -336,12 +332,19 @@ export default function Employees() {
 
   useEffect(() => { load(); }, []);
 
-  const formatDate = (iso) =>
-    new Date(iso).toLocaleDateString("en-GB", {
-      day: "2-digit", month: "short", year: "numeric",
-    });
+  const handleInvite = async (employee) => {
+    try {
+      await api.post("/invitations", {
+        email: employee.personalEmail,
+        role: "employee",
+      });
+      alert(`Invite sent to ${employee.personalEmail}`);
+    } catch (err) {
+      alert(err.response?.data?.error?.message || "Failed to send invite.");
+    }
+  };
 
-  const cols = ["60px", "1fr", "1fr", "120px", "120px"];
+  const cols = ["60px", "1fr", "1fr", "120px", "120px", "100px"];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -390,7 +393,7 @@ export default function Employees() {
           padding: "10px 20px", backgroundColor: "#f8fafc",
           borderBottom: "1px solid #e2e8f0",
         }}>
-          {["ID", "Name", "Job Title", "Status", "Department"].map(h => (
+          {["ID", "Name", "Job Title", "Status", "Department", ""].map(h => (
             <span key={h} style={{
               fontSize: 11, fontWeight: 700, color: "#94a3b8",
               letterSpacing: "1.5px", textTransform: "uppercase",
@@ -403,7 +406,7 @@ export default function Employees() {
             display: "grid", gridTemplateColumns: cols.join(" "),
             padding: "14px 20px", borderBottom: "1px solid #f1f5f9",
           }}>
-            {[1, 2, 3, 4, 5].map(j => (
+            {[1, 2, 3, 4, 5, 6].map(j => (
               <div key={j} style={{
                 height: 14, backgroundColor: "#f1f5f9",
                 borderRadius: 4, width: `${50 + j * 8}%`,
@@ -437,6 +440,29 @@ export default function Employees() {
             <span style={{ fontSize: 13, color: "#64748b" }}>{u.jobTitle}</span>
             <span><Badge value={u.status?.toLowerCase()} /></span>
             <span style={{ fontSize: 12, color: "#94a3b8" }}>{u.department?.name ?? "—"}</span>
+            <span>
+              {isAdmin && (
+                u.user ? (
+                  <span style={{ fontSize: 11, color: "#94a3b8" }}>Joined</span>
+                ) : (
+                  <button
+                    title={!u.personalEmail ? "Add personal email first" : "Send invite"}
+                    disabled={!u.personalEmail}
+                    onClick={(e) => { e.stopPropagation(); handleInvite(u); }}
+                    style={{
+                      padding: "4px 12px",
+                      backgroundColor: u.personalEmail ? "#eff6ff" : "#f1f5f9",
+                      color: u.personalEmail ? "#1d4ed8" : "#94a3b8",
+                      border: "none", borderRadius: 6,
+                      fontSize: 11, fontWeight: 600,
+                      cursor: u.personalEmail ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Invite
+                  </button>
+                )
+              )}
+            </span>
           </div>
         ))}
       </div>
