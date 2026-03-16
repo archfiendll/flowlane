@@ -15,5 +15,6 @@ router.post('/', requireRole('admin'), asyncHandler(employeeController.create));
 router.get('/:id', requireRole('admin', 'manager'), asyncHandler(employeeController.get));
 router.put('/:id', requireRole('admin'), asyncHandler(employeeController.update));
 router.delete('/:id', requireRole('admin'), asyncHandler(employeeController.deactivate));
+router.post('/:id/restore', requireRole('admin'), asyncHandler(employeeController.restore));
 
 module.exports = router;

@@ -5,9 +5,36 @@
 ---
 
 ## 🎯 Current Focus
-**→ Step 4: Send Invite button on Employee row**
-**→ Step 5: Company Setup page**
-**→ Step 6: Dashboard live counts**
+**→ Next 1: Departments**
+**→ Next 2: Vacation requests**
+**→ Next 3: Invitation management page**
+
+---
+
+## ✅ Done Now
+
+### Core product slice
+| Task | Status |
+|------|--------|
+| Auth flow — register, login, me, refresh, logout | ✅ |
+| Company setup page | ✅ |
+| Dashboard live counts | ✅ |
+| Employee create/list/get/update/archive/restore | ✅ |
+| Employee details drawer | ✅ |
+| Invite send + accept flow | ✅ |
+| Invite badges and expiry/accept state in Employees page | ✅ |
+
+### Frontend polish already completed
+| Task | Status |
+|------|--------|
+| Refresh-token handling in frontend client | ✅ |
+| Auth context + centralized session state | ✅ |
+| Role-aware protected frontend routes | ✅ |
+| Employees page — search / filter / sort | ✅ |
+| Employees page — pagination controls | ✅ |
+| Employees page — archive / restore UX | ✅ |
+| Employees page — stronger empty / error / loading states | ✅ |
+| Dashboard + Company Setup — better loading / retry states | ✅ |
 
 ---
 
@@ -90,7 +117,9 @@
 | `companyId` included in JWT + login response | ✅ |
 | Admin sends invite email via Resend | ✅ |
 | Employee accepts invite → sets password → joins company | ✅ |
-| Send Invite button on employee row | ⬜ |
+| Send Invite button on employee row | ✅ |
+| Invite state shown in employee list | ✅ |
+| Invite resend from employee row | ✅ |
 
 ### Tenant isolation
 | Task | Status |
@@ -115,6 +144,8 @@
 | `employee.controller.js` + `employee.routes.js` | ✅ |
 | `invitation.service.js` — create, accept, getByToken | ✅ |
 | `email.service.js` — Resend integration | ✅ |
+| Employee restore endpoint | ✅ |
+| Employee list — search / archive filter / sorting / pagination metadata | ✅ |
 | `department.service.js` — CRUD + employee count | ⬜ |
 | `vacation.service.js` — request, approve, reject, balance | ⬜ |
 | `pagination.js` utility — `{ data, meta: { total, page, limit } }` | ✅ |
@@ -124,16 +155,27 @@
 | Task | Status |
 |------|--------|
 | Employees page — 4-step create modal | ✅ |
-| Employees page — Send Invite button per row | ⬜ |
-| Employees page — edit modal | ⬜ |
-| Employees page — deactivate + confirm dialog | ⬜ |
-| Employees page — pagination + status filter | ⬜ |
-| Employee profile page — full details view | ⬜ |
+| Employees page — Send Invite button per row | ✅ |
+| Employees page — edit modal | ✅ |
+| Employees page — archive + restore flow | ✅ |
+| Employees page — pagination + search + filter + sort | ✅ |
+| Employee details drawer | ✅ |
 | Departments page — full CRUD | ⬜ |
 | Vacation page — submit request | ⬜ |
 | Vacation page — approve / reject (admin) | ⬜ |
-| Dashboard — live counts (employees, departments, pending vacations) | ⬜ |
-| Company setup page — fill legal details, CUI, address after register | ⬜ |
+| Invitation management page | ⬜ |
+| Dashboard — live counts (employees, departments, pending vacations) | ✅ |
+| Company setup page — fill legal details, CUI, address after register | ✅ |
+
+---
+
+## 🟠 Next Practical Order
+
+| Priority | Task | Why next |
+|------|--------|--------|
+| 1 | Departments | The schema already supports it and the Employees flow is ready to connect to real department management. |
+| 2 | Vacation requests | The domain model and dashboard already point to it, so this unlocks the next real HR workflow. |
+| 3 | Invitation management page | Invite state exists, but a dedicated page for pending / accepted / expired invites will complete that flow. |
 
 ---
 

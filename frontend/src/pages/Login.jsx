@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 import api from "../api/client";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { applySession } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,9 +19,8 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
-        localStorage.setItem("accessToken", res.data.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
-      navigate("/dashboard", { replace: true });
+      applySession(res.data.data);
+      navigate(searchParams.get("next") || "/dashboard", { replace: true });
     } catch (err) {
         setError(err.response?.data?.error?.message || "Invalid email or password.");
     } finally {
@@ -40,6 +42,13 @@ export default function Login() {
     color: "#64748b", letterSpacing: "1.5px",
     textTransform: "uppercase", marginBottom: 6,
   };
+  const reason = searchParams.get("reason");
+  const infoMessage =
+    reason === "session-expired"
+      ? "Your session expired. Sign in again to continue."
+      : reason === "signin-required"
+        ? "Sign in to continue."
+        : "";
 
   return (
     <div
@@ -77,6 +86,20 @@ export default function Login() {
             <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 28 }}>
               Enter your credentials to continue
             </p>
+
+            {infoMessage && (
+              <div style={{
+                marginBottom: 18,
+                padding: "10px 14px",
+                backgroundColor: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                borderRadius: 8,
+                color: "#1d4ed8",
+                fontSize: 13,
+              }}>
+                {infoMessage}
+              </div>
+            )}
 
             <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               <div>

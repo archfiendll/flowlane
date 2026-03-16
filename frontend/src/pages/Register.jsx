@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 import api from "../api/client";
 
 const passwordRules = [
@@ -12,6 +13,7 @@ const passwordRules = [
 
 export default function Register() {
   const navigate = useNavigate();
+  const { applySession } = useAuth();
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [password, setPassword] = useState("");
@@ -27,8 +29,7 @@ export default function Register() {
       await api.post("/auth/register", { email, password, companyName });
       // Auto-login after register
       const res = await api.post("/auth/login", { email, password });
-        localStorage.setItem("accessToken", res.data.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.data.user));
+      applySession(res.data.data);
       navigate("/dashboard", { replace: true });
     } catch (err) {
         setError(err.response?.data?.error?.message || "Registration failed. Please try again.");    } finally {

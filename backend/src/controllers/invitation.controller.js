@@ -38,5 +38,17 @@ async function getByToken(req, res) {
   return sendSuccess(res, { invitation });
 }
 
-module.exports = { invite, accept, getByToken };
+async function list(req, res) {
+  const invitations = await invitationService.listInvitations(req.companyId);
+  return sendSuccess(res, { invitations });
+}
 
+async function revoke(req, res) {
+  const invitationId = parseInt(req.params.id, 10);
+  if (!invitationId) return sendError(res, 'Invalid ID', errorCodes.VALIDATION_001, 400);
+
+  const invitation = await invitationService.revokeInvitation(req.companyId, invitationId);
+  return sendSuccess(res, { invitation });
+}
+
+module.exports = { invite, accept, getByToken, list, revoke };

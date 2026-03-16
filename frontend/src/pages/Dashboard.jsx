@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 import api from "../api/client";
 
 function StatCard({ label, value, sub, accentColor }) {
@@ -52,39 +53,88 @@ function QuickLink({ to, title, sub }) {
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <div style={{ width: 160, height: 30, borderRadius: 10, backgroundColor: "#e2e8f0", marginBottom: 10 }} />
+        <div style={{ width: 240, height: 14, borderRadius: 999, backgroundColor: "#f1f5f9" }} />
+      </div>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        {[1, 2, 3].map((card) => (
+          <div key={card} style={{
+            minWidth: 180,
+            padding: "20px 24px",
+            borderRadius: 12,
+            border: "1px solid #e2e8f0",
+            backgroundColor: "#fff",
+          }}>
+            <div style={{ width: 90, height: 10, borderRadius: 999, backgroundColor: "#f1f5f9", marginBottom: 12 }} />
+            <div style={{ width: 56, height: 28, borderRadius: 10, backgroundColor: "#e2e8f0", marginBottom: 8 }} />
+            <div style={{ width: 120, height: 12, borderRadius: 999, backgroundColor: "#f1f5f9" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const userRaw = localStorage.getItem("user");
-  const user = userRaw ? JSON.parse(userRaw) : null;
+  const { user } = useAuth();
   const role = user?.role;
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      setLoading(true);
-      try {
-        const res = await api.get("/dashboard/stats");
-        if (!cancelled) setStats(res.data.data);
-      } catch {
-        if (!cancelled) setError("Failed to load dashboard.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+  const loadDashboard = async (cancelledRef) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await api.get("/dashboard/stats");
+      if (!cancelledRef?.current) setStats(res.data.data);
+    } catch {
+      if (!cancelledRef?.current) setError("Failed to load dashboard.");
+    } finally {
+      if (!cancelledRef?.current) setLoading(false);
     }
-    load();
-    return () => { cancelled = true; };
+  };
+
+  useEffect(() => {
+    const cancelledRef = { current: false };
+    loadDashboard(cancelledRef);
+    return () => { cancelledRef.current = true; };
   }, []);
 
-  if (loading) return <p style={{ color: "#94a3b8", fontSize: 14 }}>Loading...</p>;
+  if (loading) return <DashboardSkeleton />;
   if (error) return (
     <div style={{
-      padding: "10px 14px", backgroundColor: "#fef2f2",
-      border: "1px solid #fecaca", borderRadius: 8,
-      color: "#b91c1c", fontSize: 13,
-    }}>{error}</div>
+      padding: "18px 20px", backgroundColor: "#fff7ed",
+      border: "1px solid #fdba74", borderRadius: 12,
+      color: "#9a3412", fontSize: 13,
+      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+    }}>
+      <div>
+        <p style={{ margin: "0 0 4px 0", fontSize: 14, fontWeight: 700 }}>Unable to load dashboard</p>
+        <p style={{ margin: 0 }}>{error}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => loadDashboard()}
+        style={{
+          padding: "8px 14px",
+          backgroundColor: "#fff",
+          border: "1px solid #fdba74",
+          borderRadius: 8,
+          color: "#9a3412",
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: "pointer",
+        }}
+      >
+        Retry
+      </button>
+    </div>
   );
 
   const formatDate = (iso) => iso ? new Date(iso).toLocaleDateString("en-GB", {

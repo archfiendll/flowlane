@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 
 const NAV = [
   {
@@ -10,22 +11,30 @@ const NAV = [
     path: "/employees", label: "Employees", roles: ['admin', 'manager'],
     icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
   },
+  {
+    path: "/company-setup", label: "Company Setup", roles: ['admin', 'manager'],
+    icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M5 21V7l8-4 6 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01" /></svg>,
+  },
+  {
+    path: "/departments", label: "Departments", roles: ['admin', 'manager'],
+    icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 21h16M6 18V7l6-4 6 4v11M10 10h.01M10 14h.01M14 10h.01M14 14h.01" /></svg>,
+  },
+  {
+    path: "/vacations", label: "Vacations", roles: ['admin', 'manager', 'employee'],
+    icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10m-12 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" /></svg>,
+  },
+  {
+    path: "/invitations", label: "Invitations", roles: ['admin', 'manager'],
+    icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-16 9h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
+  },
 ];
 
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-
-  const userRaw = localStorage.getItem("user");
-  const user = userRaw ? JSON.parse(userRaw) : null;
+  const { logout, user } = useAuth();
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
-
-  const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
-  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f1f5f9" }}>
@@ -142,7 +151,10 @@ export default function MainLayout() {
               }}>{user?.role}</span>
             </div>
             <button
-              onClick={logout}
+              onClick={async () => {
+                await logout();
+                navigate("/login", { replace: true });
+              }}
               style={{
                 padding: "6px 16px", backgroundColor: "transparent",
                 border: "1.5px solid #e2e8f0", borderRadius: 8,

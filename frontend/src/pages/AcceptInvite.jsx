@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext.jsx";
 import api from "../api/client";
 
 const passwordRules = [
@@ -12,6 +13,7 @@ const passwordRules = [
 
 export default function AcceptInvite() {
   const navigate = useNavigate();
+  const { applySession } = useAuth();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
@@ -51,8 +53,7 @@ export default function AcceptInvite() {
       await api.post("/invitations/accept", { token, password });
       // Auto-login
       const res = await api.post("/auth/login", { email, password });
-      localStorage.setItem("accessToken", res.data.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.data.user));
+      applySession(res.data.data);
       navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.response?.data?.error?.message || "Something went wrong.");

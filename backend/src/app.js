@@ -9,6 +9,9 @@ const userRoutes = require('./routes/user.routes');
 const employeeRoutes = require('./routes/employee.routes');
 const invitationRoutes = require('./routes/invitation.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const companyRoutes = require('./routes/company.routes');
+const departmentRoutes = require('./routes/department.routes');
+const vacationRoutes = require('./routes/vacation.routes');
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -27,6 +30,9 @@ app.use('/users', userRoutes);
 app.use('/employees', employeeRoutes);
 app.use('/invitations', invitationRoutes);
 app.use('/dashboard', dashboardRoutes);
+app.use('/company', companyRoutes);
+app.use('/departments', departmentRoutes);
+app.use('/vacations', vacationRoutes);
 // 404
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 

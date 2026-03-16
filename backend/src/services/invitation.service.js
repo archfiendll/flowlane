@@ -115,4 +115,84 @@ async function getInvitationByToken(token) {
   return { email: invitation.email, role: invitation.role };
 }
 
-module.exports = { createInvitation, acceptInvitation, getInvitationByToken };
+async function listInvitations(companyId) {
+  const invitations = await prisma.invitation.findMany({
+    where: { companyId },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      expiresAt: true,
+      acceptedAt: true,
+      createdAt: true,
+    },
+  });
+
+  const employeeMatches = await prisma.employee.findMany({
+    where: {
+      companyId,
+      personalEmail: { in: invitations.map((invitation) => invitation.email) },
+    },
+    select: {
+      personalEmail: true,
+      firstName: true,
+      lastName: true,
+      department: { select: { id: true, name: true } },
+    },
+  });
+
+  const employeeByEmail = employeeMatches.reduce((acc, employee) => {
+    acc.set(employee.personalEmail?.toLowerCase(), employee);
+    return acc;
+  }, new Map());
+
+  return invitations.map((invitation) => ({
+    ...invitation,
+    status:
+      invitation.status === 'PENDING' && new Date(invitation.expiresAt) < new Date()
+        ? 'EXPIRED'
+        : invitation.status,
+    employee: employeeByEmail.get(invitation.email.toLowerCase()) || null,
+  }));
+}
+
+async function revokeInvitation(companyId, invitationId) {
+  const invitation = await prisma.invitation.findFirst({
+    where: { id: invitationId, companyId },
+  });
+
+  if (!invitation) {
+    const err = new Error('Invitation not found');
+    err.status = 404;
+    throw err;
+  }
+
+  if (invitation.status !== 'PENDING') {
+    const err = new Error('Only pending invitations can be revoked');
+    err.status = 409;
+    throw err;
+  }
+
+  return prisma.invitation.update({
+    where: { id: invitationId },
+    data: { status: 'EXPIRED' },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      expiresAt: true,
+      createdAt: true,
+    },
+  });
+}
+
+module.exports = {
+  createInvitation,
+  acceptInvitation,
+  getInvitationByToken,
+  listInvitations,
+  revokeInvitation,
+};
