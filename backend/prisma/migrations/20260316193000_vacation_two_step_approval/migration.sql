@@ -1,0 +1,8 @@
+-- Intentionally left as a no-op.
+--
+-- The two-step vacation workflow is currently implemented in application logic
+-- while the database keeps the original VacationStatus enum:
+--   PENDING / APPROVED / REJECTED
+--
+-- Keeping this migration empty avoids applying enum changes that the current
+-- code no longer expects.

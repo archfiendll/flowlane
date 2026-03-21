@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useToast } from "../components/ToastContext.jsx";
+import { StatCard, SurfaceCard } from "../components/ui.jsx";
 import api from "../api/client";
 
 const inputStyle = {
@@ -14,37 +16,6 @@ const inputStyle = {
   outline: "none",
   boxSizing: "border-box",
 };
-
-function StatCard({ label, value, sub, accent }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 16,
-        padding: "18px 20px",
-        boxShadow: "0 10px 30px rgba(15,23,42,0.04)",
-        minWidth: 180,
-        borderTop: `3px solid ${accent}`,
-      }}
-    >
-      <p
-        style={{
-          margin: "0 0 8px 0",
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#94a3b8",
-          letterSpacing: "1.5px",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </p>
-      <p style={{ margin: "0 0 4px 0", fontSize: 28, fontWeight: 800, color: "#1e293b" }}>{value}</p>
-      <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>{sub}</p>
-    </div>
-  );
-}
 
 function DepartmentSkeleton() {
   return (
@@ -208,10 +179,10 @@ function DepartmentModal({ department, onClose, onSaved }) {
 export default function Departments() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const toast = useToast();
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -253,10 +224,10 @@ export default function Departments() {
 
     try {
       await api.delete(`/departments/${department.id}`);
-      setNotice(`${department.name} deleted.`);
+      toast.success(`${department.name} deleted.`, { title: "Department removed" });
       await load();
     } catch (err) {
-      setError(err.response?.data?.error?.message || "Failed to delete department.");
+      toast.error(err.response?.data?.error?.message || "Failed to delete department.", { title: "Delete failed" });
     }
   };
 
@@ -343,23 +314,22 @@ export default function Departments() {
           label="Departments"
           value={summary.totalDepartments}
           sub="Active teams in the company"
-          accent="#1d6fc4"
+          accentColor="#1d6fc4"
         />
         <StatCard
           label="Assigned Employees"
           value={summary.totalEmployees}
           sub="Employees linked to a department"
-          accent="#0f766e"
+          accentColor="#0f766e"
         />
         <StatCard
           label="Largest Team"
           value={summary.largestDepartment?._count?.employees ?? 0}
           sub={summary.largestDepartment ? summary.largestDepartment.name : "No teams yet"}
-          accent="#7c3aed"
+          accentColor="#7c3aed"
         />
       </div>
 
-      {notice ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534", fontSize: 13 }}>{notice}</div> : null}
       {error ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: 13 }}>{error}</div> : null}
 
       {loading ? (
@@ -383,7 +353,7 @@ export default function Departments() {
       ) : (
         <div style={{ display: "grid", gap: 14 }}>
           {departments.map((department) => (
-            <div
+            <SurfaceCard
               key={department.id}
               style={{
                 display: "grid",
@@ -391,10 +361,6 @@ export default function Departments() {
                 gap: 14,
                 alignItems: "center",
                 padding: "18px 20px",
-                borderRadius: 18,
-                border: "1px solid #e2e8f0",
-                backgroundColor: "#fff",
-                boxShadow: "0 12px 32px rgba(15,23,42,0.04)",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -484,7 +450,7 @@ export default function Departments() {
                   </>
                 ) : null}
               </div>
-            </div>
+            </SurfaceCard>
           ))}
         </div>
       )}

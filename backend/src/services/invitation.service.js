@@ -81,8 +81,37 @@ async function acceptInvitation({ token, password }) {
 
   const hashed = await bcrypt.hash(password, 12);
 
-  // Create user + mark invitation as accepted in one transaction
+  // Create user + link employee + mark invitation as accepted in one transaction
   const result = await prisma.$transaction(async (tx) => {
+    const matchingEmployee = await tx.employee.findFirst({
+      where: {
+        companyId: invitation.companyId,
+        deletedAt: null,
+        personalEmail: {
+          equals: invitation.email,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    if (invitation.role === 'employee' && !matchingEmployee) {
+      const err = new Error('No employee record matches this invitation email');
+      err.status = 409;
+      throw err;
+    }
+
+    if (matchingEmployee?.userId) {
+      const err = new Error('This employee record is already linked to another account');
+      err.status = 409;
+      throw err;
+    }
+
     const user = await tx.user.create({
       data: {
         email: invitation.email,
@@ -92,6 +121,13 @@ async function acceptInvitation({ token, password }) {
       },
       select: { id: true, email: true, role: true, companyId: true },
     });
+
+    if (matchingEmployee) {
+      await tx.employee.update({
+        where: { id: matchingEmployee.id },
+        data: { userId: user.id },
+      });
+    }
 
     await tx.invitation.update({
       where: { token },

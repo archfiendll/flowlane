@@ -1,67 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
+import { useToast } from "../components/ToastContext.jsx";
+import { StatCard, StatusPill, SurfaceCard } from "../components/ui.jsx";
 import api from "../api/client";
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 }
 
-function StatCard({ label, value, sub, accent }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 16,
-        padding: "18px 20px",
-        borderTop: `3px solid ${accent}`,
-        minWidth: 180,
-        boxShadow: "0 10px 30px rgba(15,23,42,0.04)",
-      }}
-    >
-      <p
-        style={{
-          margin: "0 0 8px 0",
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#94a3b8",
-          letterSpacing: "1.5px",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </p>
-      <p style={{ margin: "0 0 4px 0", fontSize: 28, fontWeight: 800, color: "#1e293b" }}>{value}</p>
-      <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>{sub}</p>
-    </div>
-  );
-}
-
 function StatusBadge({ status }) {
-  const tones = {
-    PENDING: { backgroundColor: "#eff6ff", color: "#1d4ed8", label: "Pending" },
-    ACCEPTED: { backgroundColor: "#dcfce7", color: "#166534", label: "Accepted" },
-    EXPIRED: { backgroundColor: "#fef3c7", color: "#92400e", label: "Expired" },
-    REVOKED: { backgroundColor: "#fee2e2", color: "#b91c1c", label: "Revoked" },
-  };
+  const tone =
+    status === "ACCEPTED"
+      ? "success"
+      : status === "EXPIRED"
+        ? "warning"
+        : status === "REVOKED"
+          ? "danger"
+          : "info";
 
-  const tone = tones[status] || { backgroundColor: "#f1f5f9", color: "#64748b", label: status };
+  const label =
+    status === "ACCEPTED"
+      ? "Accepted"
+      : status === "EXPIRED"
+        ? "Expired"
+        : status === "REVOKED"
+          ? "Revoked"
+          : "Pending";
 
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "4px 10px",
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 800,
-        ...tone,
-      }}
-    >
-      {tone.label}
-    </span>
-  );
+  return <StatusPill label={label} tone={tone} />;
 }
 
 function InvitationSkeleton() {
@@ -99,10 +64,10 @@ function InvitationSkeleton() {
 }
 
 export default function Invitations() {
+  const toast = useToast();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [busyInviteId, setBusyInviteId] = useState(null);
 
@@ -139,10 +104,10 @@ export default function Invitations() {
     setBusyInviteId(row.id);
     try {
       await api.post("/invitations", { email: row.email, role: row.role });
-      setNotice(`Invitation resent to ${row.email}.`);
+      toast.success(`Invitation resent to ${row.email}.`, { title: "Invitation resent" });
       await load();
     } catch (err) {
-      setError(err.response?.data?.error?.message || "Failed to resend invitation.");
+      toast.error(err.response?.data?.error?.message || "Failed to resend invitation.", { title: "Resend failed" });
     } finally {
       setBusyInviteId(null);
     }
@@ -152,10 +117,10 @@ export default function Invitations() {
     setBusyInviteId(row.id);
     try {
       await api.post(`/invitations/${row.id}/revoke`);
-      setNotice(`Invitation for ${row.email} was revoked.`);
+      toast.success(`Invitation for ${row.email} was revoked.`, { title: "Invitation revoked" });
       await load();
     } catch (err) {
-      setError(err.response?.data?.error?.message || "Failed to revoke invitation.");
+      toast.error(err.response?.data?.error?.message || "Failed to revoke invitation.", { title: "Revoke failed" });
     } finally {
       setBusyInviteId(null);
     }
@@ -200,12 +165,12 @@ export default function Invitations() {
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <StatCard label="Pending" value={summary.pending} sub="Awaiting acceptance" accent="#1d4ed8" />
-        <StatCard label="Accepted" value={summary.accepted} sub="Accounts activated" accent="#16a34a" />
-        <StatCard label="Expired" value={summary.expired} sub="Need follow-up or resend" accent="#f59e0b" />
+        <StatCard label="Pending" value={summary.pending} sub="Awaiting acceptance" accentColor="#1d4ed8" />
+        <StatCard label="Accepted" value={summary.accepted} sub="Accounts activated" accentColor="#16a34a" />
+        <StatCard label="Expired" value={summary.expired} sub="Need follow-up or resend" accentColor="#f59e0b" />
       </div>
 
-      <div style={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <SurfaceCard style={{ padding: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
         {filterChips.map((chip) => (
           <button
             key={chip.key}
@@ -225,9 +190,8 @@ export default function Invitations() {
             {chip.label}
           </button>
         ))}
-      </div>
+      </SurfaceCard>
 
-      {notice ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534", fontSize: 13 }}>{notice}</div> : null}
       {error ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: 13 }}>{error}</div> : null}
 
       {loading ? (
@@ -242,17 +206,13 @@ export default function Invitations() {
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {visibleRows.map((row) => (
-            <div
+            <SurfaceCard
               key={row.id}
               style={{
                 display: "grid",
                 gridTemplateColumns: "1.35fr 150px 110px 120px 120px 170px",
                 gap: 12,
                 padding: "18px 20px",
-                borderRadius: 16,
-                border: "1px solid #e2e8f0",
-                backgroundColor: "#fff",
-                boxShadow: "0 12px 32px rgba(15,23,42,0.04)",
                 alignItems: "center",
               }}
             >
@@ -305,7 +265,7 @@ export default function Invitations() {
                   <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>No actions</span>
                 )}
               </div>
-            </div>
+            </SurfaceCard>
           ))}
         </div>
       )}

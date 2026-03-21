@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PublicRoute from "./components/PublicRoute";
 import { useAuth } from "./auth/AuthContext.jsx";
 
 import MainLayout from "./layouts/MainLayout";
@@ -23,8 +24,22 @@ export default function App() {
     <Routes>
 
         {/* Public */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route
+          path="/login"
+          element={(
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          )}
+        />
+        <Route
+          path="/register"
+          element={(
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          )}
+        />
         <Route path="/invite/accept" element={<AcceptInvite />} />
 
 

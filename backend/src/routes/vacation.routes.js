@@ -11,6 +11,7 @@ const router = Router();
 router.use(requireAuth, requireTenant);
 router.get('/', asyncHandler(vacationController.list));
 router.post('/', asyncHandler(vacationController.create));
+router.post('/:id/confirm', asyncHandler(vacationController.confirm));
 router.post('/:id/approve', requireRole('admin', 'manager'), asyncHandler(vacationController.approve));
 router.post('/:id/reject', requireRole('admin', 'manager'), asyncHandler(vacationController.reject));
 

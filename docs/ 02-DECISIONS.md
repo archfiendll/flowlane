@@ -1,227 +1,148 @@
-# Flowlane Backend – Architectural Decisions
+# Flowlane – Architectural Decisions
 
-This document tracks explicit technical decisions made during backend development, including reasoning, tradeoffs, and future considerations.
+This document tracks the main technical decisions that currently shape the codebase.
 
 ---
 
 ## 1. Database
 
 ### Decision
-**PostgreSQL**
+Use PostgreSQL with Prisma-managed schema.
 
-### Context
-The system requires:
-- Strong relational integrity
-- Structured user-role relationships
-- Long-term SaaS scalability
+### Why
+- relational integrity matters for users, employees, companies, invitations, and vacations
+- Prisma keeps the schema readable and easy to evolve during the project
 
-### Rationale
-- ACID-compliant
-- Production-proven
-- Native Azure support
-- Strong Prisma integration
-- Excellent support for relational modeling
-
-### Current Usage
-- `User` model
-- Role-based authorization field
-- Migration-managed schema
-
-### Tradeoffs
-- Requires schema migrations
-- More setup complexity compared to NoSQL
-
-### Future Evolution
-- Multi-tenant modeling
-- Indexed performance tuning
-- Row-level security (if required)
-- Read replicas for scaling
+### Tradeoff
+- schema drift can happen if code and migrations move out of sync, so migrations need extra discipline
 
 ---
 
-## 2. ORM Layer
+## 2. Architecture Pattern
 
 ### Decision
-**Prisma ORM**
-
-### Context
-We need:
-- Safe database interaction
-- Migration tracking
-- Clear schema structure
-
-### Rationale
-- Generated type-safe client
-- Declarative schema file
-- Structured migration system
-- Clean abstraction over SQL
-- Strong developer experience
-
-### Architectural Role
-Prisma is used only inside the service layer, never directly in routes.
-
-### Tradeoffs
-- Abstraction overhead
-- Less flexibility than raw SQL for highly complex queries
-
-### Future Improvements
-- Add transaction management
-- Enable query logging in production
-- Optimize select fields for performance
-
----
-
-## 3. Authentication Strategy
-
-### Decision
-**JWT – Stateless Authentication**
-
-### Context
-The system must:
-- Scale horizontally
-- Avoid server session storage
-- Integrate easily with frontend clients
-
-### Rationale
-- No session database required
-- Suitable for Azure App Service
-- Industry-standard REST authentication pattern
-- Clean separation between authentication and authorization
-
-### Implementation Details
-- JWT payload contains:
-  - `sub` → user ID
-  - `role` → authorization context
-- Token expiration configurable via `JWT_EXPIRES_IN`
-- Token verified on every protected request
-- User re-fetched from DB for additional safety
-
-### Security Measures
-- Password hashing with bcrypt (12 salt rounds)
-- No password returned in API responses
-- Centralized error handling
-- Helmet security headers
-- Controlled CORS configuration
-
-### Known Limitations
-- No refresh token rotation yet
-- No token revocation strategy
-- No device/session tracking
-
-### Planned Improvements
-- Refresh token implementation
-- Short-lived access tokens in production
-- Logout invalidation strategy
-
----
-
-## 4. Authorization Strategy
-
-### Decision
-**Role-Based Access Control (RBAC)**
-
-### Current Roles
-- `employee` (default)
-- `admin`
-
-### Implementation
-- `requireAuth` middleware
-- `requireRole(...roles)` middleware
-- Admin-protected test route: `/admin/ping`
-
-### Rationale
-- Simple and predictable
-- Easy to extend
-- Suitable for HR SaaS structure
-
-### Future Evolution
-- Add `manager`, `super_admin`
-- Introduce permission-based model
-- Company-scoped role isolation
-
----
-
-## 5. Architecture Pattern
-
-### Decision
-**Layered Architecture**
+Use layered backend structure:
 
 Routes → Controllers → Services → Prisma
 
-### Responsibilities
-
-#### Routes
-- Define endpoints
-- Attach middleware
-
-#### Controllers
-- Handle HTTP layer
-- Validate input
-- Call services
-
-#### Services
-- Contain business logic
-- Interact with database
-
-#### Prisma
-- Pure data access layer
-
-### Rationale
-- Separation of concerns
-- Easier testing
-- Easier scaling
-- Clear debugging boundaries
-
-### Anti-Patterns Avoided
-- Business logic inside routes
-- Direct DB calls in controllers
-- Monolithic file structure
+### Why
+- business logic stays out of routes
+- controllers remain thin
+- service layer is easier to debug and test
 
 ---
 
-## 6. Validation Strategy
+## 3. Auth Strategy
 
 ### Decision
-**Zod**
+JWT auth with refresh-token flow.
 
-### Rationale
-- Runtime validation
-- Declarative schemas
-- Prevents invalid data from reaching business logic
+### Why
+- fits the frontend + API split well
+- avoids server sessions
+- supports role-based routing and session restore in the frontend
 
-### Current Coverage
-- Register endpoint
-- Login endpoint
-
-### Planned Improvements
-- Password strength enforcement
-- Centralized validation formatting
-- Reusable validation modules
-
-### Password Policy (Register)
-- Enforced at API boundary (Zod)
-- Rules: min 10, max 72, uppercase, lowercase, number, special char
-- Login validation remains minimal to avoid blocking existing users
+### Current Reality
+- access + refresh token handling exists in both backend and frontend
+- frontend restores sessions and retries once on expired access tokens
 
 ---
 
-## 7. Error Handling Strategy
+## 4. Multi-Tenant Model
 
 ### Decision
-Centralized error middleware
+Scope all HR data by `companyId`.
 
-### Rationale
-- Consistent error responses
-- Prevent stack trace leakage in production
-- Clean HTTP status management
-
-### Future Improvements
-- Structured error codes
-- Logging integration
-- Request ID tracing
+### Why
+- this is the simplest and clearest model for the current SaaS-style HR use case
+- keeps employee, invitation, department, and vacation data isolated per company
 
 ---
 
-## 8. Infrastructure Structure
+## 5. Invitation Flow
 
-### Monorepo Layout
+### Decision
+Invitation acceptance must link the created user account to the existing employee record.
+
+### Why
+The project originally created invited user accounts without attaching them to the matching `Employee` row. That produced “floating” employee logins that could authenticate but could not use employee-specific flows like dashboard or vacations.
+
+### Current Rule
+On invitation acceptance:
+- create the user
+- find the active employee record in the same company using `personalEmail`
+- set `employee.userId = user.id`
+- only then mark the invitation as accepted
+
+### Tradeoff
+- this currently depends on `personalEmail` matching the invite email exactly enough to be found
+
+### Future Improvement
+- make the invite explicitly reference an `employeeId` so the link is not inferred only from email
+
+---
+
+## 6. Vacation Workflow
+
+### Decision
+Keep the existing DB enum (`PENDING / APPROVED / REJECTED`) and implement the two-step workflow in application logic for now.
+
+### Why
+A schema-level enum expansion was started, but the actual database in use still had the original enum. Instead of forcing the migration immediately and breaking runtime behavior, the current code derives workflow meaning from existing fields:
+
+- employee-created pending request → interpreted as “waiting for admin”
+- admin-created pending request with `approvedBy` already set → interpreted as “waiting for employee confirmation”
+
+### Benefit
+- works with the current database state
+- avoids enum mismatch crashes during development
+
+### Tradeoff
+- the workflow is implicit rather than modeled cleanly in the database
+- `approvedBy` is doing two jobs right now: workflow marker and final approver field
+
+### Future Improvement
+- add explicit workflow origin / createdBy fields
+- add explicit employee confirmation / decline metadata
+- clean up the model once the workflow is stable
+
+---
+
+## 7. Frontend App Structure
+
+### Decision
+Keep the frontend in page-level components for speed, but extract shared UI and state helpers where repetition becomes real.
+
+### What exists now
+- auth context
+- protected/public route guards
+- shared toast provider
+- shared UI primitives for cards, panels, quick links, and pills
+
+### Why
+- fast iteration during product building
+- enough reuse to reduce visual drift without overengineering a full design system too early
+
+---
+
+## 8. Product Direction
+
+### Decision
+Prioritize HR operations MVP first, AI second.
+
+### Why
+The strongest value of the project is currently:
+- employee records
+- invites
+- departments
+- vacations
+- company setup
+
+AI is still a valid differentiator, especially for portfolio/interview value, but it should build on top of a working HR product rather than replace it.
+
+### Practical Implication
+Current priority is:
+1. stabilize workflow logic
+2. add tests
+3. add deployment / CI
+4. add AI feature after the base product is trustworthy

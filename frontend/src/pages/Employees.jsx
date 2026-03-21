@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useToast } from "../components/ToastContext.jsx";
 import api from "../api/client";
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
@@ -791,7 +792,6 @@ export default function Employees() {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState(searchParams.get("departmentId") || "");
@@ -810,6 +810,7 @@ export default function Employees() {
   const [restoringEmployeeId, setRestoringEmployeeId] = useState(null);
 
   const { user } = useAuth();
+  const toast = useToast();
   const isAdmin = user?.role === "admin";
   const viewingArchived = archivedFilter === "archived";
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
@@ -880,7 +881,7 @@ export default function Employees() {
       } catch (_err) {
         if (!cancelled) {
           setSelectedEmployee(null);
-          setNotice({ type: "error", message: "Failed to load employee details." });
+          toast.error("Failed to load employee details.", { title: "Details unavailable" });
         }
       } finally {
         if (!cancelled) setLoadingSelectedEmployee(false);
@@ -913,9 +914,8 @@ export default function Employees() {
       const res = await api.get(`/employees/${selectedEmployeeId}`);
       setSelectedEmployee(res.data.data.employee);
     }
-    setNotice({
-      type: "success",
-      message: `Employee ${action === "updated" ? "updated" : "created"} successfully.`,
+    toast.success(`Employee ${action === "updated" ? "updated" : "created"} successfully.`, {
+      title: action === "updated" ? "Employee updated" : "Employee created",
     });
   };
 
@@ -924,7 +924,6 @@ export default function Employees() {
     if (!confirmed) return;
 
     setDeactivatingEmployeeId(employee.id);
-    setNotice(null);
     try {
       await api.delete(`/employees/${employee.id}`);
       await load();
@@ -932,15 +931,9 @@ export default function Employees() {
         const res = await api.get(`/employees/${employee.id}`);
         setSelectedEmployee(res.data.data.employee);
       }
-      setNotice({
-        type: "success",
-        message: `${employee.firstName} ${employee.lastName} was archived.`,
-      });
+      toast.success(`${employee.firstName} ${employee.lastName} was archived.`, { title: "Employee archived" });
     } catch (err) {
-      setNotice({
-        type: "error",
-        message: err.response?.data?.error?.message || "Failed to deactivate employee.",
-      });
+      toast.error(err.response?.data?.error?.message || "Failed to deactivate employee.", { title: "Archive failed" });
     } finally {
       setDeactivatingEmployeeId(null);
     }
@@ -948,7 +941,6 @@ export default function Employees() {
 
   const handleRestore = async (employee) => {
     setRestoringEmployeeId(employee.id);
-    setNotice(null);
     try {
       await api.post(`/employees/${employee.id}/restore`);
       await load();
@@ -956,15 +948,9 @@ export default function Employees() {
         const res = await api.get(`/employees/${employee.id}`);
         setSelectedEmployee(res.data.data.employee);
       }
-      setNotice({
-        type: "success",
-        message: `${employee.firstName} ${employee.lastName} was restored.`,
-      });
+      toast.success(`${employee.firstName} ${employee.lastName} was restored.`, { title: "Employee restored" });
     } catch (err) {
-      setNotice({
-        type: "error",
-        message: err.response?.data?.error?.message || "Failed to restore employee.",
-      });
+      toast.error(err.response?.data?.error?.message || "Failed to restore employee.", { title: "Restore failed" });
     } finally {
       setRestoringEmployeeId(null);
     }
@@ -972,7 +958,6 @@ export default function Employees() {
 
   const handleInvite = async (employee) => {
     setSendingInviteFor(employee.id);
-    setNotice(null);
     try {
       const res = await api.post("/invitations", {
         email: employee.personalEmail,
@@ -993,21 +978,15 @@ export default function Employees() {
             : row
         )
       );
-      setNotice({
-        type: "success",
-        message: `Invite sent to ${employee.personalEmail}.`,
-      });
+      toast.success(`Invite sent to ${employee.personalEmail}.`, { title: "Invitation sent" });
     } catch (err) {
-      setNotice({
-        type: "error",
-        message: err.response?.data?.error?.message || "Failed to send invite.",
-      });
+      toast.error(err.response?.data?.error?.message || "Failed to send invite.", { title: "Invite failed" });
     } finally {
       setSendingInviteFor(null);
     }
   };
 
-  const cols = ["72px", "1.4fr", "1fr", "140px", "140px", "250px"];
+  const cols = ["72px", "1.4fr", "1fr", "140px", "140px", "320px"];
   const emptyTitle = viewingArchived
     ? "No archived employees yet"
     : debouncedSearchQuery || statusFilter
@@ -1094,21 +1073,6 @@ export default function Employees() {
         )}
       </div>
 
-      {notice && (
-        <div
-          style={{
-            padding: "12px 14px",
-            borderRadius: 12,
-            fontSize: 13,
-            border: `1px solid ${notice.type === "error" ? "#fecaca" : "#bbf7d0"}`,
-            backgroundColor: notice.type === "error" ? "#fef2f2" : "#f0fdf4",
-            color: notice.type === "error" ? "#b91c1c" : "#166534",
-          }}
-        >
-          {notice.message}
-        </div>
-      )}
-
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {[
           { value: "active", label: "Active" },
@@ -1140,7 +1104,7 @@ export default function Employees() {
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "minmax(220px, 1.4fr) 180px 160px 160px 180px auto",
+        gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr auto",
         gap: 12,
         alignItems: "end",
         padding: "16px",

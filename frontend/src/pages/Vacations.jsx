@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
+import { useToast } from "../components/ToastContext.jsx";
+import { StatCard, StatusPill, SurfaceCard } from "../components/ui.jsx";
 import api from "../api/client";
 
 const inputStyle = {
@@ -14,62 +16,22 @@ const inputStyle = {
   boxSizing: "border-box",
 };
 
-function StatCard({ label, value, sub, accent }) {
-  return (
-    <div
-      style={{
-        backgroundColor: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 16,
-        padding: "18px 20px",
-        borderTop: `3px solid ${accent}`,
-        minWidth: 180,
-        boxShadow: "0 10px 30px rgba(15,23,42,0.04)",
-      }}
-    >
-      <p
-        style={{
-          margin: "0 0 8px 0",
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#94a3b8",
-          letterSpacing: "1.5px",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </p>
-      <p style={{ margin: "0 0 4px 0", fontSize: 28, fontWeight: 800, color: "#1e293b" }}>{value}</p>
-      <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>{sub}</p>
-    </div>
-  );
-}
-
 function StatusBadge({ status }) {
-  const tones = {
-    PENDING: { backgroundColor: "#fef3c7", color: "#92400e", label: "Pending" },
-    APPROVED: { backgroundColor: "#dcfce7", color: "#166534", label: "Approved" },
-    REJECTED: { backgroundColor: "#fee2e2", color: "#b91c1c", label: "Rejected" },
-  };
-
-  const tone = tones[status] || { backgroundColor: "#f1f5f9", color: "#64748b", label: status };
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "4px 10px",
-        borderRadius: 999,
-        fontSize: 11,
-        fontWeight: 800,
-        ...tone,
-      }}
-    >
-      {tone.label}
-    </span>
-  );
+  const tone =
+    status === "APPROVED"
+      ? "success"
+      : status === "REJECTED"
+        ? "danger"
+        : "warning";
+  const label =
+    status === "APPROVED"
+      ? "Approved"
+      : status === "REJECTED"
+        ? "Rejected"
+        : status === "PENDING_EMPLOYEE_CONFIRMATION"
+          ? "Waiting employee"
+          : "Waiting admin";
+  return <StatusPill label={label} tone={tone} />;
 }
 
 function TypeBadge({ type }) {
@@ -133,12 +95,13 @@ function VacationTableSkeleton({ canReview }) {
   );
 }
 
-function VacationRequestModal({ onClose, onSaved }) {
-  const [form, setForm] = useState({ type: "ANNUAL", startDate: "", endDate: "", note: "" });
+function VacationRequestModal({ canReview, employees, onClose, onSaved }) {
+  const [form, setForm] = useState({ employeeId: "", type: "ANNUAL", startDate: "", endDate: "", note: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const fieldErrors = {
+    employeeId: canReview && !form.employeeId ? "Employee is required." : "",
     startDate: !form.startDate ? "Start date is required." : "",
     endDate: !form.endDate ? "End date is required." : "",
   };
@@ -149,15 +112,18 @@ function VacationRequestModal({ onClose, onSaved }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (fieldErrors.startDate || fieldErrors.endDate) {
-      setError(fieldErrors.startDate || fieldErrors.endDate);
+    if (fieldErrors.employeeId || fieldErrors.startDate || fieldErrors.endDate) {
+      setError(fieldErrors.employeeId || fieldErrors.startDate || fieldErrors.endDate);
       return;
     }
 
     setSaving(true);
     setError("");
     try {
-      await api.post("/vacations", form);
+      await api.post("/vacations", {
+        ...form,
+        employeeId: canReview ? parseInt(form.employeeId, 10) : undefined,
+      });
       onSaved();
       onClose();
     } catch (err) {
@@ -186,11 +152,33 @@ function VacationRequestModal({ onClose, onSaved }) {
         <div>
           <h2 style={{ margin: "0 0 6px 0", fontSize: 22, color: "#1e293b" }}>Request Vacation</h2>
           <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>
-            Submit time off with a clear date range so your manager can review it quickly.
+            {canReview
+              ? "Create a vacation request for an employee after the paperwork is signed and ready to record."
+              : "Submit time off with a clear date range so your manager can review it quickly."}
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {canReview ? (
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+                Employee
+              </label>
+              <select
+                style={fieldErrors.employeeId ? { ...inputStyle, borderColor: "#fca5a5", backgroundColor: "#fff7f7" } : inputStyle}
+                value={form.employeeId}
+                onChange={(e) => setForm((current) => ({ ...current, employeeId: e.target.value }))}
+              >
+                <option value="">Choose employee</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.firstName} {employee.lastName} · {employee.jobTitle}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
           <div>
             <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
               Leave Type
@@ -260,13 +248,14 @@ function formatDate(value) {
 
 export default function Vacations() {
   const { user } = useAuth();
+  const toast = useToast();
   const canReview = user?.role === "admin" || user?.role === "manager";
   const [requests, setRequests] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [showModal, setShowModal] = useState(false);
 
   const load = async () => {
@@ -292,35 +281,61 @@ export default function Vacations() {
     if (!canReview) return undefined;
 
     let cancelled = false;
-    async function loadDepartments() {
+    async function loadReferenceData() {
       try {
-        const res = await api.get("/departments");
-        if (!cancelled) setDepartments(res.data.data.departments ?? []);
+        const [departmentsRes, employeesRes] = await Promise.all([
+          api.get("/departments"),
+          api.get("/employees", { params: { archived: "active", limit: 200, sortBy: "name", sortOrder: "asc" } }),
+        ]);
+
+        if (!cancelled) {
+          setDepartments(departmentsRes.data.data.departments ?? []);
+          setEmployees(employeesRes.data.data.data ?? []);
+        }
       } catch (_err) {
-        if (!cancelled) setDepartments([]);
+        if (!cancelled) {
+          setDepartments([]);
+          setEmployees([]);
+        }
       }
     }
 
-    loadDepartments();
+    loadReferenceData();
     return () => {
       cancelled = true;
     };
   }, [canReview]);
 
   const summary = useMemo(() => {
-    const pending = requests.filter((request) => request.status === "PENDING").length;
+    const pending = requests.filter((request) =>
+      canReview
+        ? request.status === "PENDING_ADMIN_APPROVAL"
+        : request.status === "PENDING_ADMIN_APPROVAL" || request.status === "PENDING_EMPLOYEE_CONFIRMATION"
+    ).length;
     const approved = requests.filter((request) => request.status === "APPROVED").length;
     const rejected = requests.filter((request) => request.status === "REJECTED").length;
     return { pending, approved, rejected };
-  }, [requests]);
+  }, [canReview, requests]);
 
   const updateStatus = async (requestId, action) => {
     try {
       await api.post(`/vacations/${requestId}/${action}`);
-      setNotice(`Request ${action === "approve" ? "approved" : "rejected"}.`);
+      toast.success(`Request ${action === "approve" ? "approved" : "rejected"}.`, {
+        title: action === "approve" ? "Vacation approved" : "Vacation rejected",
+      });
       await load();
     } catch (err) {
-      setError(err.response?.data?.error?.message || "Failed to update request.");
+      toast.error(err.response?.data?.error?.message || "Failed to update request.", { title: "Update failed" });
+    }
+  };
+
+  const confirmRequest = async (requestId) => {
+    try {
+      await api.post(`/vacations/${requestId}/confirm`);
+      toast.success("Vacation request confirmed.", { title: "Vacation confirmed" });
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to confirm request.", { title: "Confirmation failed" });
     }
   };
 
@@ -350,11 +365,9 @@ export default function Vacations() {
             <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, backgroundColor: "#fff", border: "1px solid #dbeafe", fontSize: 12, color: "#1d4ed8", fontWeight: 700 }}>
               {requests.length} total request{requests.length === 1 ? "" : "s"}
             </span>
-            {canReview ? (
-              <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, backgroundColor: "#fff", border: "1px solid #fde68a", fontSize: 12, color: "#92400e", fontWeight: 700 }}>
-                {summary.pending} pending review
-              </span>
-            ) : null}
+            <span style={{ display: "inline-flex", padding: "6px 10px", borderRadius: 999, backgroundColor: "#fff", border: "1px solid #fde68a", fontSize: 12, color: "#92400e", fontWeight: 700 }}>
+              {summary.pending} {canReview ? "pending review" : "still pending"}
+            </span>
           </div>
         </div>
 
@@ -364,13 +377,13 @@ export default function Vacations() {
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-        <StatCard label="Pending" value={summary.pending} sub={canReview ? "Awaiting decision" : "Waiting for review"} accent="#f59e0b" />
-        <StatCard label="Approved" value={summary.approved} sub="Approved requests" accent="#16a34a" />
-        <StatCard label="Rejected" value={summary.rejected} sub="Requests declined" accent="#dc2626" />
+        <StatCard label="Pending" value={summary.pending} sub={canReview ? "Awaiting your decision" : "Not fully signed yet"} accentColor="#f59e0b" />
+        <StatCard label="Approved" value={summary.approved} sub="Approved requests" accentColor="#16a34a" />
+        <StatCard label="Rejected" value={summary.rejected} sub="Requests declined" accentColor="#dc2626" />
       </div>
 
       {canReview ? (
-        <div style={{ backgroundColor: "#fff", border: "1px solid #e2e8f0", borderRadius: 16, padding: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <SurfaceCard style={{ padding: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
           <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "1.5px", textTransform: "uppercase" }}>Department filter</span>
           <div style={{ width: 280 }}>
             <select style={inputStyle} value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
@@ -380,10 +393,9 @@ export default function Vacations() {
               ))}
             </select>
           </div>
-        </div>
+        </SurfaceCard>
       ) : null}
 
-      {notice ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534", fontSize: 13 }}>{notice}</div> : null}
       {error ? <div style={{ padding: "12px 14px", borderRadius: 12, backgroundColor: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: 13 }}>{error}</div> : null}
 
       {loading ? (
@@ -398,17 +410,13 @@ export default function Vacations() {
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {requests.map((request) => (
-            <div
+            <SurfaceCard
               key={request.id}
               style={{
                 display: "grid",
                 gridTemplateColumns: canReview ? "1.35fr 130px 170px 120px 170px" : "130px 170px 120px 160px",
                 gap: 12,
                 padding: "18px 20px",
-                borderRadius: 16,
-                border: "1px solid #e2e8f0",
-                backgroundColor: "#fff",
-                boxShadow: "0 12px 32px rgba(15,23,42,0.04)",
                 alignItems: "center",
               }}
             >
@@ -442,27 +450,39 @@ export default function Vacations() {
 
               {canReview ? (
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
-                  {request.status === "PENDING" ? (
+                  {request.status === "PENDING_ADMIN_APPROVAL" ? (
                     <>
                       <button onClick={() => updateStatus(request.id, "approve")} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #bbf7d0", backgroundColor: "#f0fdf4", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#166534" }}>Approve</button>
                       <button onClick={() => updateStatus(request.id, "reject")} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #fecaca", backgroundColor: "#fef2f2", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#b91c1c" }}>Reject</button>
                     </>
                   ) : (
-                    <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>Handled</span>
+                    <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>
+                      {request.status === "PENDING_EMPLOYEE_CONFIRMATION" ? "Waiting for employee" : "Handled"}
+                    </span>
                   )}
                 </div>
               ) : (
-                <div>
-                  <p style={{ margin: "0 0 4px 0", fontSize: 13, color: "#475569", fontWeight: 700 }}>Submitted</p>
-                  <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>{formatDate(request.createdAt)}</p>
-                </div>
+                request.status === "PENDING_EMPLOYEE_CONFIRMATION" ? (
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button onClick={() => confirmRequest(request.id)} style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #bfdbfe", backgroundColor: "#eff6ff", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#1d4ed8" }}>
+                      Confirm
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p style={{ margin: "0 0 4px 0", fontSize: 13, color: "#475569", fontWeight: 700 }}>
+                      {request.status === "PENDING_ADMIN_APPROVAL" ? "Waiting for admin" : "Submitted"}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>{formatDate(request.createdAt)}</p>
+                  </div>
+                )
               )}
-            </div>
+            </SurfaceCard>
           ))}
         </div>
       )}
 
-      {showModal ? <VacationRequestModal onClose={() => setShowModal(false)} onSaved={load} /> : null}
+      {showModal ? <VacationRequestModal canReview={canReview} employees={employees} onClose={() => setShowModal(false)} onSaved={load} /> : null}
     </div>
   );
 }

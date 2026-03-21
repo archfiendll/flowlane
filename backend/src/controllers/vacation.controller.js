@@ -16,14 +16,20 @@ async function list(req, res) {
 }
 
 async function create(req, res) {
-  const { type, startDate, endDate } = req.body;
+  const { type, startDate, endDate, employeeId } = req.body;
   if (!type || !startDate || !endDate) {
     return sendError(res, 'Type, start date, and end date are required', errorCodes.VALIDATION_001, 400);
+  }
+
+  if ((req.user.role === 'admin' || req.user.role === 'manager') && employeeId && Number.isNaN(parseInt(employeeId, 10))) {
+    return sendError(res, 'Invalid employee ID', errorCodes.VALIDATION_001, 400);
   }
 
   const request = await vacationService.createVacationRequest({
     companyId: req.companyId,
     userId: req.user.id,
+    role: req.user.role,
+    employeeId: employeeId ? parseInt(employeeId, 10) : null,
     ...req.body,
   });
 
@@ -54,4 +60,17 @@ async function reject(req, res) {
   return sendSuccess(res, { request });
 }
 
-module.exports = { list, create, approve, reject };
+async function confirm(req, res) {
+  const requestId = parseInt(req.params.id, 10);
+  if (!requestId) return sendError(res, 'Invalid ID', errorCodes.VALIDATION_001, 400);
+
+  const request = await vacationService.confirmVacationRequest({
+    companyId: req.companyId,
+    requestId,
+    userId: req.user.id,
+  });
+
+  return sendSuccess(res, { request });
+}
+
+module.exports = { list, create, approve, reject, confirm };

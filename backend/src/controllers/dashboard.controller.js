@@ -15,7 +15,7 @@ async function getStats(req, res) {
         where: { companyId },
       }),
       prisma.vacationRequest.count({
-        where: { companyId, status: 'PENDING' },
+        where: { companyId, status: 'PENDING', approvedBy: null },
       }),
     ]);
 
