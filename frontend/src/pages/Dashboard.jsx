@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { QuickLinkCard, SectionPanel, StatCard, StatusPill } from "../components/ui.jsx";
 import api from "../api/client";
@@ -14,7 +14,7 @@ export default function Dashboard() {
   const role = user?.role;
   const isAdminOrManager = role === "admin" || role === "manager";
 
-  const loadDashboard = async (cancelledRef) => {
+  const loadDashboard = useCallback(async (cancelledRef) => {
     setLoading(true);
     setError("");
     try {
@@ -37,7 +37,7 @@ export default function Dashboard() {
     } finally {
       if (!cancelledRef?.current) setLoading(false);
     }
-  };
+  }, [isAdminOrManager]);
 
   useEffect(() => {
     const cancelledRef = { current: false };
@@ -45,7 +45,7 @@ export default function Dashboard() {
     return () => {
       cancelledRef.current = true;
     };
-  }, [isAdminOrManager]);
+  }, [loadDashboard]);
 
   const companyChecklist = useMemo(() => {
     if (!company) return [];

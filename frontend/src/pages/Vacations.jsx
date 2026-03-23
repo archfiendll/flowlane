@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
 import { StatCard, SurfaceCard } from "../components/ui.jsx";
@@ -19,7 +19,7 @@ export default function Vacations() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -32,11 +32,11 @@ export default function Vacations() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [canReview, departmentFilter]);
 
   useEffect(() => {
-    load();
-  }, [departmentFilter]);
+    void load();
+  }, [load]);
 
   useEffect(() => {
     if (!canReview) return undefined;
@@ -53,7 +53,7 @@ export default function Vacations() {
           setDepartments(departmentsRes.data.data.departments ?? []);
           setEmployees(employeesRes.data.data.data ?? []);
         }
-      } catch (_err) {
+      } catch {
         if (!cancelled) {
           setDepartments([]);
           setEmployees([]);

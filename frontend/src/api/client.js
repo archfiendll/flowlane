@@ -40,7 +40,7 @@ export function getStoredUser() {
 
   try {
     return JSON.parse(raw);
-  } catch (_err) {
+  } catch {
     return null;
   }
 }
@@ -109,7 +109,7 @@ api.interceptors.response.use(
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
         return api(originalRequest);
-      } catch (_refreshError) {
+      } catch {
         clearAuthSession();
         if (window.location.pathname !== '/login') redirectToLogin('session-expired');
       } finally {

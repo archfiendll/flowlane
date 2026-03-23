@@ -1,21 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 export default function ProtectedRoute({ children, roles = null, redirectTo = '/dashboard' }) {
-  const { defaultRoute, isAuthenticated, restoreSession, status, user } = useAuth();
-  const [attemptedRestore, setAttemptedRestore] = useState(false);
-
-  useEffect(() => {
-    if (status === 'restoring' && !attemptedRestore) {
-      setAttemptedRestore(true);
-      restoreSession();
-    }
-
-    if (status !== 'restoring' && attemptedRestore) {
-      setAttemptedRestore(false);
-    }
-  }, [attemptedRestore, restoreSession, status]);
+  const { defaultRoute, isAuthenticated, status, user } = useAuth();
 
   if (status === 'restoring') {
     return (

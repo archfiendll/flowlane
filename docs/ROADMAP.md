@@ -94,6 +94,25 @@ What still needs tightening:
 | Guard against accepting employee invite without matching employee record | ✅ |
 | One-time repair for older unlinked employee accounts | ⬜ |
 
+### Planned LLM Integration
+| Task | Status |
+|------|--------|
+| Define narrow HR assistant scope | ✅ |
+| Limit answers to signed-in user and company context | ✅ |
+| Separate stored facts from generated explanation | ✅ |
+| Position assistant as support, not legal authority | ✅ |
+| Add retrieval over employee, vacation, and company data | ⬜ |
+| Add permission-aware prompt and tool layer | ⬜ |
+| Add UI entry point inside app | ⬜ |
+| Add response logging and safety review | ⬜ |
+
+The intended LLM direction is a focused assistant inside Flowlane for practical HR questions such as:
+
+- how many vacation days do I have left
+- what type of leave applies in my case
+- what is the status of my request
+- what company information or contract details are already on file
+
 ---
 
 ## Next Practical Order

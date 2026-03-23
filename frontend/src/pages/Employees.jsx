@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext.jsx";
 import { useToast } from "../components/ToastContext.jsx";
@@ -38,7 +38,7 @@ export default function Employees() {
   const viewingArchived = archivedFilter === "archived";
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 350);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -60,7 +60,7 @@ export default function Employees() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [archivedFilter, debouncedSearchQuery, departmentFilter, page, sortBy, sortOrder, statusFilter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +69,7 @@ export default function Employees() {
       try {
         const res = await api.get("/departments");
         if (!cancelled) setDepartments(res.data.data.departments ?? []);
-      } catch (_err) {
+      } catch {
         if (!cancelled) setDepartments([]);
       }
     }
@@ -84,7 +84,7 @@ export default function Employees() {
     setPage(1);
   }, [archivedFilter, debouncedSearchQuery, departmentFilter, sortBy, sortOrder, statusFilter]);
 
-  useEffect(() => { load(); }, [archivedFilter, debouncedSearchQuery, departmentFilter, page, sortBy, sortOrder, statusFilter]);
+  useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +101,7 @@ export default function Employees() {
         if (!cancelled) {
           setSelectedEmployee(res.data.data.employee);
         }
-      } catch (_err) {
+      } catch {
         if (!cancelled) {
           setSelectedEmployee(null);
           toast.error("Failed to load employee details.", { title: "Details unavailable" });
@@ -115,7 +115,7 @@ export default function Employees() {
     return () => {
       cancelled = true;
     };
-  }, [selectedEmployeeId]);
+  }, [selectedEmployeeId, toast]);
 
   const openCreateModal = () => {
     setEditingEmployeeId(null);

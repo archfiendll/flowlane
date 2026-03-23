@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import api, {
   clearAuthSession,
   getAccessToken,
@@ -29,12 +29,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredUser());
   const [status, setStatus] = useState(() => getInitialStatus());
 
-  useEffect(() => subscribeToAuthChanges(() => {
-    setUser(getStoredUser());
-    setStatus(getInitialStatus());
-  }), []);
+  useEffect(() => {
+    return subscribeToAuthChanges(() => {
+      setUser(getStoredUser());
+      setStatus(getInitialStatus());
+    });
+  }, []);
 
-  const restoreSession = async () => {
+  const restoreSession = useCallback(async () => {
     if (getAccessToken()) {
       setStatus("authenticated");
       setUser(getStoredUser());
@@ -54,13 +56,19 @@ export function AuthProvider({ children }) {
       setUser(getStoredUser());
       setStatus("authenticated");
       return true;
-    } catch (_err) {
+    } catch {
       clearAuthSession();
       setUser(null);
       setStatus("unauthenticated");
       return false;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (status === "restoring") {
+      void restoreSession();
+    }
+  }, [restoreSession, status]);
 
   const applySession = (session) => {
     setAuthSession(session);
@@ -68,17 +76,17 @@ export function AuthProvider({ children }) {
     setStatus("authenticated");
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api.post("/auth/logout");
-    } catch (_err) {
+    } catch {
       // Clear local session even if the access token is already invalid.
     } finally {
       clearAuthSession();
       setUser(null);
       setStatus("unauthenticated");
     }
-  };
+  }, []);
 
   const value = useMemo(() => ({
     user,
@@ -88,7 +96,7 @@ export function AuthProvider({ children }) {
     applySession,
     restoreSession,
     logout,
-  }), [status, user]);
+  }), [logout, restoreSession, status, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
