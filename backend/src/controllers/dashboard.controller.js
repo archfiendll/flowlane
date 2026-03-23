@@ -2,23 +2,26 @@
 
 const prisma = require('../config/prisma');
 const { sendSuccess } = require('../utils/response');
+const { isPendingAdminApproval, isPendingEmployeeConfirmation } = require('../utils/vacation-workflow');
 
 async function getStats(req, res) {
   const { companyId, role, id: userId } = req.user;
 
   if (role === 'admin' || role === 'manager') {
-    const [totalEmployees, totalDepartments, pendingVacations] = await Promise.all([
+    const [totalEmployees, totalDepartments, pendingVacationRequests] = await Promise.all([
       prisma.employee.count({
         where: { companyId, deletedAt: null, status: 'ACTIVE' },
       }),
       prisma.department.count({
         where: { companyId },
       }),
-      prisma.vacationRequest.count({
-        where: { companyId, status: 'PENDING', approvedBy: null },
+      prisma.vacationRequest.findMany({
+        where: { companyId, status: 'PENDING' },
+        select: { status: true, approvedBy: true },
       }),
     ]);
 
+    const pendingVacations = pendingVacationRequests.filter(isPendingAdminApproval).length;
     return sendSuccess(res, { totalEmployees, totalDepartments, pendingVacations });
   }
 
@@ -40,9 +43,15 @@ async function getStats(req, res) {
     },
   });
 
-  const pendingVacations = employee ? await prisma.vacationRequest.count({
-    where: { companyId, status: 'PENDING', employee: { userId } },
-  }) : 0;
+  const pendingVacationRequests = employee
+    ? await prisma.vacationRequest.findMany({
+        where: { companyId, status: 'PENDING', employee: { userId } },
+        select: { status: true, approvedBy: true },
+      })
+    : [];
+  const pendingVacations = pendingVacationRequests.filter(
+    (request) => isPendingAdminApproval(request) || isPendingEmployeeConfirmation(request),
+  ).length;
 
   return sendSuccess(res, { employee, pendingVacations });
 }

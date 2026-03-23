@@ -1,21 +1,7 @@
 'use strict';
 
 const prisma = require('../config/prisma');
-
-function normalizeVacationStatus(status) {
-  if (status === 'PENDING') return 'PENDING_ADMIN_APPROVAL';
-  if (status === 'PENDING_ADMIN_APPROVAL') return 'PENDING_ADMIN_APPROVAL';
-  if (status === 'PENDING_EMPLOYEE_CONFIRMATION') return 'PENDING_EMPLOYEE_CONFIRMATION';
-  return status;
-}
-
-function getWorkflowStatus(request) {
-  if (request.status === 'PENDING' && request.approvedBy) {
-    return 'PENDING_EMPLOYEE_CONFIRMATION';
-  }
-
-  return normalizeVacationStatus(request.status);
-}
+const { getVacationWorkflowStatus } = require('../utils/vacation-workflow');
 
 function calculateDays(startDate, endDate) {
   const ms = new Date(endDate).setHours(0, 0, 0, 0) - new Date(startDate).setHours(0, 0, 0, 0);
@@ -102,7 +88,7 @@ async function listVacationRequests({ companyId, role, userId, departmentId }) {
 
   return requests.map((request) => ({
     ...request,
-    status: getWorkflowStatus(request),
+    status: getVacationWorkflowStatus(request),
   }));
 }
 
@@ -177,7 +163,7 @@ async function updateVacationStatus({ companyId, requestId, status, approverId }
     throw err;
   }
 
-  const currentStatus = getWorkflowStatus(request);
+  const currentStatus = getVacationWorkflowStatus(request);
 
   if (currentStatus !== 'PENDING_ADMIN_APPROVAL' && currentStatus !== 'PENDING_EMPLOYEE_CONFIRMATION') {
     const err = new Error('Only pending vacation requests can be updated');
@@ -232,7 +218,7 @@ async function confirmVacationRequest({ companyId, requestId, userId }) {
     throw err;
   }
 
-  if (getWorkflowStatus(request) !== 'PENDING_EMPLOYEE_CONFIRMATION') {
+  if (getVacationWorkflowStatus(request) !== 'PENDING_EMPLOYEE_CONFIRMATION') {
     const err = new Error('This vacation request is not waiting for employee confirmation');
     err.status = 409;
     throw err;
