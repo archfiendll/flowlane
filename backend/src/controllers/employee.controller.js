@@ -1,6 +1,7 @@
 'use strict';
 
 const employeeService = require('../services/employee.service');
+const employeeDocumentService = require('../services/employee-document.service');
 const { sendSuccess, sendError } = require('../utils/response');
 const errorCodes = require('../utils/errorCodes');
 
@@ -66,4 +67,33 @@ async function restore(req, res) {
   return sendSuccess(res, result);
 }
 
-module.exports = { list, get, create, update, deactivate, restore };
+async function listDocumentTemplates(req, res) {
+  const templates = employeeDocumentService.getDocumentTemplates();
+  return sendSuccess(res, { templates });
+}
+
+async function generateDocument(req, res) {
+  const employeeId = parseInt(req.params.id, 10);
+  if (!employeeId) return sendError(res, 'Invalid ID', errorCodes.VALIDATION_001, 400);
+
+  const result = await employeeDocumentService.generateEmployeeDocument(
+    req.companyId,
+    employeeId,
+    req.params.templateKey,
+  );
+
+  res.setHeader('Content-Type', result.contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+  return res.status(200).send(result.buffer);
+}
+
+module.exports = {
+  list,
+  get,
+  create,
+  update,
+  deactivate,
+  restore,
+  listDocumentTemplates,
+  generateDocument,
+};

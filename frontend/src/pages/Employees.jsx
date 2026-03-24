@@ -31,6 +31,9 @@ export default function Employees() {
   const [sendingInviteFor, setSendingInviteFor] = useState(null);
   const [deactivatingEmployeeId, setDeactivatingEmployeeId] = useState(null);
   const [restoringEmployeeId, setRestoringEmployeeId] = useState(null);
+  const [documentTemplates, setDocumentTemplates] = useState([]);
+  const [loadingDocumentTemplates, setLoadingDocumentTemplates] = useState(false);
+  const [generatingTemplateKey, setGeneratingTemplateKey] = useState("");
 
   const { user } = useAuth();
   const toast = useToast();
@@ -206,6 +209,66 @@ export default function Employees() {
       toast.error(err.response?.data?.error?.message || "Failed to send invite.", { title: "Invite failed" });
     } finally {
       setSendingInviteFor(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+
+    let cancelled = false;
+
+    async function loadDocumentTemplates() {
+      setLoadingDocumentTemplates(true);
+      try {
+        const res = await api.get("/employees/documents/templates");
+        if (!cancelled) {
+          setDocumentTemplates(res.data.data.templates ?? []);
+        }
+      } catch {
+        if (!cancelled) {
+          setDocumentTemplates([]);
+        }
+      } finally {
+        if (!cancelled) setLoadingDocumentTemplates(false);
+      }
+    }
+
+    loadDocumentTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin]);
+
+  const handleGenerateDocument = async (template) => {
+    if (!selectedEmployeeId) return;
+
+    setGeneratingTemplateKey(template.key);
+
+    try {
+      const res = await api.get(`/employees/${selectedEmployeeId}/documents/${template.key}`, {
+        responseType: "blob",
+      });
+
+      const contentDisposition = res.headers["content-disposition"] || "";
+      const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+      const filename = filenameMatch?.[1] || `${template.key}.docx`;
+
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+
+      toast.success(`Generated ${template.label}.`, { title: "Document ready" });
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to generate document.", {
+        title: "Document generation failed",
+      });
+    } finally {
+      setGeneratingTemplateKey("");
     }
   };
 
@@ -656,6 +719,9 @@ export default function Employees() {
         <EmployeeDetailsDrawer
           employee={selectedEmployee}
           loading={loadingSelectedEmployee}
+          documentTemplates={loadingDocumentTemplates ? [] : documentTemplates}
+          generatingTemplateKey={generatingTemplateKey}
+          onGenerateDocument={handleGenerateDocument}
           onClose={() => {
             setSelectedEmployeeId(null);
             setSelectedEmployee(null);

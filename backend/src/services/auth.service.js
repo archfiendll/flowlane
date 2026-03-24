@@ -21,6 +21,7 @@ async function register({ email, password, companyName }) {
         legalAddress: '',
         city: '',
         country: '',
+        email: '',
         legalRepName: '',
         legalRepTitle: '',
       },

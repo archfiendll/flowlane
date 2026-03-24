@@ -3,6 +3,9 @@ import { ActionChip, Badge, DetailRow, EmployeeAvatar, InviteBadge, SectionSkele
 export function EmployeeDetailsDrawer({
   employee,
   loading,
+  documentTemplates = [],
+  generatingTemplateKey = "",
+  onGenerateDocument,
   onClose,
   onEdit,
   onArchive,
@@ -93,6 +96,42 @@ export function EmployeeDetailsDrawer({
                 <DetailRow label="Department" value={employee.department?.name} />
                 <DetailRow label="Vacation Days / Year" value={employee.vacationDaysPerYear} />
               </section>
+
+              {canManage ? (
+                <section
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                    padding: 16,
+                    borderRadius: 16,
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                  }}
+                >
+                  <div>
+                    <p style={{ margin: "0 0 4px 0", fontSize: 14, fontWeight: 800, color: "#1e293b" }}>
+                      Generate documents
+                    </p>
+                    <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
+                      Fill the existing HR templates with this employee&apos;s data and download the DOCX file.
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {documentTemplates.map((template) => (
+                      <ActionChip
+                        key={template.key}
+                        tone="primary"
+                        onClick={() => onGenerateDocument(template)}
+                        disabled={generatingTemplateKey === template.key}
+                      >
+                        {generatingTemplateKey === template.key ? "Generating..." : template.label}
+                      </ActionChip>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
             </>
           )}
         </div>
@@ -126,4 +165,3 @@ export function EmployeeDetailsDrawer({
     </div>
   );
 }
-

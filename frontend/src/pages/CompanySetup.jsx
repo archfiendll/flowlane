@@ -69,6 +69,7 @@ const EMPTY_FORM = {
   legalAddress: "",
   city: "",
   country: "Romania",
+  email: "",
   bankName: "",
   iban: "",
   legalRepName: "",
@@ -102,6 +103,7 @@ export default function CompanySetup() {
         legalAddress: company.legalAddress ?? "",
         city: company.city ?? "",
         country: company.country ?? "Romania",
+        email: company.email ?? "",
         bankName: company.bankName ?? "",
         iban: company.iban ?? "",
         legalRepName: company.legalRepName ?? "",
@@ -244,6 +246,15 @@ export default function CompanySetup() {
             </Field>
             <Field label="Country *">
               <input style={inputStyle} value={form.country} onChange={setField("country")} required />
+            </Field>
+            <Field label="Company Email">
+              <input
+                type="email"
+                style={inputStyle}
+                value={form.email}
+                onChange={setField("email")}
+                placeholder="office@flowlane.ro"
+              />
             </Field>
             <Field label="Legal Address *">
               <input

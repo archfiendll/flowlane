@@ -74,6 +74,7 @@ model Company {
   legalAddress  String
   city          String
   country       String
+  email         String?
   bankName      String?
   iban          String?
   legalRepName  String
