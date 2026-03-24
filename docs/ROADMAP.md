@@ -16,12 +16,16 @@ What is working today:
 - vacation request flow with employee/admin split
 - role-aware routing and session restoration on the frontend
 - dashboard with role-specific views
+- document generation from HR DOCX templates
+- employee document history with upload / download / rename / delete
+- cloud-ready document storage model using storage provider + key
+- backend AI assistant endpoint with employee/admin context building
 
 What still needs tightening:
 - vacation workflow and audit clarity
 - tests
 - deployment / CI
-- AI feature if kept as portfolio differentiator
+- AI fallback mode or funded provider access
 
 ---
 
@@ -54,6 +58,10 @@ What still needs tightening:
 | Company setup page | ✅ |
 | Employee create/list/get/update/archive/restore | ✅ |
 | Employee details drawer | ✅ |
+| Employee document generation from templates | ✅ |
+| Employee document CRUD | ✅ |
+| Employee document metadata (source/category/notes) | ✅ |
+| Cloud-ready document storage abstraction | ✅ |
 | Department CRUD | ✅ |
 | Invitation send / accept / revoke | ✅ |
 | Invitation management page | ✅ |
@@ -101,10 +109,14 @@ What still needs tightening:
 | Limit answers to signed-in user and company context | ✅ |
 | Separate stored facts from generated explanation | ✅ |
 | Position assistant as support, not legal authority | ✅ |
+| Backend `/ai/chat` endpoint | ✅ |
+| Anthropic API integration wired | ✅ |
+| Admin fallback to company-level context if no employee profile exists | ✅ |
 | Add retrieval over employee, vacation, and company data | ⬜ |
 | Add permission-aware prompt and tool layer | ⬜ |
 | Add UI entry point inside app | ⬜ |
 | Add response logging and safety review | ⬜ |
+| Add graceful local fallback when provider credits are unavailable | ⬜ |
 
 The intended LLM direction is a focused assistant inside Flowlane for practical HR questions such as:
 
@@ -118,10 +130,10 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 ## Next Practical Order
 | Priority | Task | Why next |
 |------|--------|--------|
-| 1 | Vacation workflow cleanup | It is functional now, but still needs audit clarity and a cleaner explicit workflow model. |
-| 2 | Automated tests | Auth, invitation acceptance, employee linking, and vacation flows now justify integration coverage. |
-| 3 | Deployment / CI | The app is becoming portfolio-ready and should be easier to run and verify consistently. |
-| 4 | AI feature | Best added after the operational HR core is stable enough to serve as useful context. |
+| 1 | AI fallback mode or funded provider access | The backend AI slice is implemented, but demo reliability still depends on Anthropic credits. |
+| 2 | Vacation workflow cleanup | It is functional now, but still needs audit clarity and a cleaner explicit workflow model. |
+| 3 | Automated tests | Auth, invitation acceptance, employee linking, document flows, and vacation flows now justify integration coverage. |
+| 4 | Deployment / CI | The app is becoming portfolio-ready and should be easier to run and verify consistently. |
 
 ---
 
@@ -150,9 +162,10 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 ### Product / Portfolio Expansion
 | Task | Status |
 |------|--------|
-| Contract / PDF generation | ⬜ |
+| Contract / document generation | ✅ |
+| Document upload center | ✅ |
 | Audit log model and UI | ⬜ |
-| AI HR assistant | ⬜ |
+| AI HR assistant | 🟨 |
 
 ---
 
@@ -160,3 +173,5 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 - The vacation workflow currently uses the existing DB enum (`PENDING / APPROVED / REJECTED`) and derives the two-step workflow in application logic.
 - The invitation acceptance bug that created floating employee accounts has been fixed in code for new accepted invites.
 - Existing broken employee accounts created before that fix may still need manual DB relinking.
+- The document system now stores DB metadata separately from physical files and uses `storageProvider` + `storageKey` so it can later move from local disk to Azure Blob Storage more cleanly.
+- The Anthropic-backed AI endpoint is implemented and tested through auth and context building; current live-answer blocking issue is provider credit availability, not route wiring.

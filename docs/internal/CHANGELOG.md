@@ -1,5 +1,30 @@
 # Flowlane – Changelog
 
+## 2026-03-24
+
+### Documents
+- Added HR document generation from DOCX templates
+- Added employee-scoped document persistence with database metadata
+- Added document list, download, rename, and delete flows in the employee drawer
+- Added manual document upload for employee records
+- Added document metadata fields and timeline polish (`source`, `category`, `notes`)
+- Refactored document storage to use `storageProvider` + `storageKey` for future cloud migration
+
+### Company / Demo Data
+- Added company email support to the company schema and setup flow
+- Added richer company profile data for document generation
+- Added demo users and employee-linked HR seed data for testing
+- Added Romanian employee profile seed data for document template coverage
+
+### AI
+- Added backend AI route/controller/service structure
+- Added protected `/ai/chat` endpoint with tenant-aware context loading
+- Added separate employee-self-service and admin/company-level AI context paths
+- Wired Anthropic API integration for the first assistant slice
+
+### Docs
+- Updated README and roadmap to reflect document workflows and AI progress
+
 ## 2026-03-21
 
 ### Product

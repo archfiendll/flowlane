@@ -12,6 +12,8 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const companyRoutes = require('./routes/company.routes');
 const departmentRoutes = require('./routes/department.routes');
 const vacationRoutes = require('./routes/vacation.routes');
+const aiRoutes = require('./routes/ai.routes');
+
 
 const errorHandler = require('./middleware/errorHandler');
 
@@ -33,6 +35,8 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/company', companyRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/vacations', vacationRoutes);
+app.use('/ai', aiRoutes);
+
 // 404
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 

@@ -146,3 +146,65 @@ Current priority is:
 2. add tests
 3. add deployment / CI
 4. add AI feature after the base product is trustworthy
+
+---
+
+## 9. Document Management Model
+
+### Decision
+Treat employee documents as first-class records in the database, not just files on disk.
+
+### Why
+- generated and uploaded documents both need employee/company ownership
+- history, rename, delete, and future auditability all depend on metadata, not only file existence
+- the employee drawer becomes a practical HR document center rather than a one-off export action
+
+### Current Shape
+- `EmployeeDocument` stores metadata such as title, file name, MIME type, template key, and timestamps
+- documents are scoped by both `employeeId` and `companyId`
+- files are currently stored locally, but the app reads them through a storage service
+
+---
+
+## 10. Storage Abstraction
+
+### Decision
+Use `storageProvider` + `storageKey` instead of storing absolute filesystem paths as the core document reference.
+
+### Why
+- absolute local paths are brittle
+- cloud migration is much easier if storage is abstracted early
+- the same metadata model can support local disk today and Azure Blob later
+
+### Current Reality
+- local storage is the only active provider today
+- `document-storage.service.js` hides save/read/delete behavior
+
+### Future Improvement
+- add an Azure Blob implementation under the same interface
+- switch provider based on environment configuration
+
+---
+
+## 11. AI Assistant Scope
+
+### Decision
+Start the AI feature as a protected backend endpoint with narrow HR support scope, not as a generic public chatbot.
+
+### Why
+- the app already has structured HR data, so the first value is context-aware assistance
+- auth and tenant context should be part of the design from day one
+- this is stronger for interview discussion than a generic chat box without business grounding
+
+### Current Rule
+- `/ai/chat` requires auth and tenant context
+- employee-linked users get employee/self-service context
+- admin users without an employee row get company-level admin context instead of a hard failure
+
+### Current Limitation
+- live provider responses depend on available Anthropic API credits
+
+### Future Improvement
+- add graceful fallback when the provider is unavailable
+- add retrieval over internal documents and records
+- add a UI entry point once the backend behavior is stable

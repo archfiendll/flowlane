@@ -24,12 +24,16 @@ Flowlane already supports a connected first product slice:
 - invitation send, accept, resend, and management flows
 - dashboard views for both admins/managers and employees
 - vacation request workflows for employees and admins
+- employee document generation from DOCX templates
+- employee document storage with history, upload, rename, delete, and metadata
+- backend AI assistant endpoint with role-aware HR context
 
 The frontend is no longer just a thin demo client. It includes:
 
 - protected and role-aware routes
 - employee details and edit flows
 - invitation and vacation management screens
+- employee document center inside the employee drawer
 - dashboard quick actions and setup visibility
 - shared toast notifications and reusable UI primitives
 
@@ -46,6 +50,7 @@ The frontend is no longer just a thin demo client. It includes:
 - Zod
 - Helmet
 - CORS
+- DOCX templating via Docxtemplater
 
 ### Frontend
 
@@ -71,6 +76,12 @@ Responsibilities:
 This keeps the backend readable and makes business workflows easier to evolve and test.
 
 The frontend is moving toward a feature-based structure for larger areas such as employees, vacations, and dashboard UI so that page files do not become overloaded.
+
+Document storage now also follows a small abstraction layer:
+
+`Document Generation -> Document Storage Service -> Local Storage`
+
+The current implementation stores files locally, but the document model now uses `storageProvider` and `storageKey` so the same flow can later move to Azure Blob Storage without rewriting the whole feature.
 
 ## Project Structure
 
@@ -254,3 +265,6 @@ The most useful public documents in this repository are:
 - the public roadmap for current status and next priorities
 
 Detailed change history and decision notes are kept under `docs/internal/` for project maintenance, but they are not required to understand or run the project.
+
+Current note:
+- the Anthropic-backed AI endpoint is implemented at the backend integration level, but live responses currently depend on available Anthropic API credits in the local environment
