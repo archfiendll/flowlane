@@ -1,6 +1,11 @@
 import { useRef } from "react";
 import { ActionChip, Badge, DetailRow, EmployeeAvatar, InviteBadge, SectionSkeleton, formatDate } from "./utils.jsx";
 
+function getDocumentTone(document) {
+  if (document.source === "UPLOADED") return "neutral";
+  return "primary";
+}
+
 export function EmployeeDetailsDrawer({
   employee,
   loading,
@@ -204,9 +209,22 @@ export function EmployeeDetailsDrawer({
                           <p style={{ margin: "0 0 4px 0", fontSize: 13, fontWeight: 700, color: "#334155" }}>
                             {document.title}
                           </p>
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 4 }}>
+                            <ActionChip tone={getDocumentTone(document)} disabled>
+                              {document.source === "UPLOADED" ? "Uploaded" : "Generated"}
+                            </ActionChip>
+                            {document.category ? (
+                              <ActionChip disabled>{document.category}</ActionChip>
+                            ) : null}
+                          </div>
                           <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>
                             {new Date(document.createdAt).toLocaleString("en-GB")} · {document.fileName}
                           </p>
+                          {document.notes ? (
+                            <p style={{ margin: "4px 0 0 0", fontSize: 11, color: "#64748b" }}>
+                              {document.notes}
+                            </p>
+                          ) : null}
                         </div>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
                           <ActionChip tone="primary" onClick={() => onDownloadDocument(document)}>

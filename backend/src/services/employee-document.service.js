@@ -229,8 +229,10 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
     data: {
       employeeId: employee.id,
       companyId,
+      source: 'GENERATED',
       templateKey: template.key,
       title: template.label,
+      category: 'Contract',
       fileName,
       storageProvider: storedFile.storageProvider,
       storageKey: storedFile.storageKey,
@@ -240,7 +242,10 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
     },
     select: {
       id: true,
+      source: true,
       title: true,
+      category: true,
+      notes: true,
       fileName: true,
       templateKey: true,
       createdAt: true,
@@ -275,6 +280,8 @@ async function uploadEmployeeDocument(companyId, employeeId, data, generatedById
   const mimeType = data?.mimeType?.trim() || 'application/octet-stream';
   const contentBase64 = data?.contentBase64?.trim();
   const title = data?.title?.trim() || fileName || 'Uploaded document';
+  const category = data?.category?.trim() || 'Uploaded';
+  const notes = data?.notes?.trim() || null;
 
   if (!fileName || !contentBase64) {
     const err = new Error('File name and content are required');
@@ -299,8 +306,11 @@ async function uploadEmployeeDocument(companyId, employeeId, data, generatedById
     data: {
       employeeId: employee.id,
       companyId,
+      source: 'UPLOADED',
       templateKey: 'uploaded',
       title,
+      category,
+      notes,
       fileName,
       storageProvider: storedFile.storageProvider,
       storageKey: storedFile.storageKey,
@@ -309,7 +319,10 @@ async function uploadEmployeeDocument(companyId, employeeId, data, generatedById
     },
     select: {
       id: true,
+      source: true,
       title: true,
+      category: true,
+      notes: true,
       fileName: true,
       templateKey: true,
       createdAt: true,
@@ -334,8 +347,11 @@ async function listEmployeeDocuments(companyId, employeeId) {
     where: { employeeId, companyId },
     select: {
       id: true,
+      source: true,
       title: true,
       templateKey: true,
+      category: true,
+      notes: true,
       fileName: true,
       mimeType: true,
       createdAt: true,
@@ -353,8 +369,11 @@ async function getEmployeeDocument(companyId, employeeId, documentId) {
     },
     select: {
       id: true,
+      source: true,
       title: true,
       templateKey: true,
+      category: true,
+      notes: true,
       fileName: true,
       mimeType: true,
       storageProvider: true,
@@ -377,6 +396,8 @@ async function getEmployeeDocument(companyId, employeeId, documentId) {
 
 async function updateEmployeeDocument(companyId, employeeId, documentId, data) {
   const title = data?.title?.trim();
+  const category = data?.category?.trim() || null;
+  const notes = data?.notes?.trim() || null;
 
   if (!title) {
     const err = new Error('Document title is required');
@@ -392,8 +413,11 @@ async function updateEmployeeDocument(companyId, employeeId, documentId, data) {
     },
     select: {
       id: true,
+      source: true,
       title: true,
       templateKey: true,
+      category: true,
+      notes: true,
       fileName: true,
       mimeType: true,
       createdAt: true,
@@ -408,11 +432,14 @@ async function updateEmployeeDocument(companyId, employeeId, documentId, data) {
 
   return prisma.employeeDocument.update({
     where: { id: documentId },
-    data: { title },
+    data: { title, category, notes },
     select: {
       id: true,
+      source: true,
       title: true,
       templateKey: true,
+      category: true,
+      notes: true,
       fileName: true,
       mimeType: true,
       createdAt: true,

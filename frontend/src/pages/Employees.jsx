@@ -341,12 +341,26 @@ export default function Employees() {
     if (!selectedEmployeeId) return;
 
     const nextTitle = window.prompt("Rename document", document.title);
-    if (!nextTitle || nextTitle.trim() === document.title) return;
+    if (nextTitle === null || !nextTitle.trim()) return;
+    const nextCategory = window.prompt("Document category", document.category || "");
+    if (nextCategory === null) return;
+    const nextNotes = window.prompt("Document notes", document.notes || "");
+    if (nextNotes === null) return;
+
+    if (
+      nextTitle.trim() === document.title
+      && nextCategory.trim() === (document.category || "")
+      && nextNotes.trim() === (document.notes || "")
+    ) {
+      return;
+    }
 
     setManagingDocumentId(`rename-${document.id}`);
     try {
       const res = await api.patch(`/employees/${selectedEmployeeId}/documents/${document.id}`, {
         title: nextTitle.trim(),
+        category: nextCategory.trim(),
+        notes: nextNotes.trim(),
       });
 
       const updatedDocument = res.data.data.document;
@@ -402,9 +416,17 @@ export default function Employees() {
         setUploadingDocument(false);
         return;
       }
+      const category = window.prompt("Document category", "Uploaded")?.trim();
+      if (category === undefined || category === null) {
+        setUploadingDocument(false);
+        return;
+      }
+      const notes = window.prompt("Document notes", "") ?? "";
 
       const res = await api.post(`/employees/${selectedEmployeeId}/documents/upload`, {
         title,
+        category,
+        notes,
         fileName: file.name,
         mimeType: file.type || "application/octet-stream",
         contentBase64: window.btoa(binary),
