@@ -25,6 +25,7 @@ build/
 coverage/
 frontend/dist/
 frontend/dist-ssr/
+backend/storage/
 
 # Editor and OS files
 .DS_Store

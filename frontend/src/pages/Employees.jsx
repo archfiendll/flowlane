@@ -34,6 +34,9 @@ export default function Employees() {
   const [documentTemplates, setDocumentTemplates] = useState([]);
   const [loadingDocumentTemplates, setLoadingDocumentTemplates] = useState(false);
   const [generatingTemplateKey, setGeneratingTemplateKey] = useState("");
+  const [documents, setDocuments] = useState([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [managingDocumentId, setManagingDocumentId] = useState("");
 
   const { user } = useAuth();
   const toast = useToast();
@@ -239,6 +242,36 @@ export default function Employees() {
     };
   }, [isAdmin]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDocuments() {
+      if (!selectedEmployeeId) {
+        setDocuments([]);
+        return;
+      }
+
+      setLoadingDocuments(true);
+      try {
+        const res = await api.get(`/employees/${selectedEmployeeId}/documents`);
+        if (!cancelled) {
+          setDocuments(res.data.data.documents ?? []);
+        }
+      } catch {
+        if (!cancelled) {
+          setDocuments([]);
+        }
+      } finally {
+        if (!cancelled) setLoadingDocuments(false);
+      }
+    }
+
+    loadDocuments();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedEmployeeId]);
+
   const handleGenerateDocument = async (template) => {
     if (!selectedEmployeeId) return;
 
@@ -263,12 +296,89 @@ export default function Employees() {
       window.URL.revokeObjectURL(blobUrl);
 
       toast.success(`Generated ${template.label}.`, { title: "Document ready" });
+      if (selectedEmployeeId) {
+        const docsRes = await api.get(`/employees/${selectedEmployeeId}/documents`);
+        setDocuments(docsRes.data.data.documents ?? []);
+      }
     } catch (err) {
       toast.error(err.response?.data?.error?.message || "Failed to generate document.", {
         title: "Document generation failed",
       });
     } finally {
       setGeneratingTemplateKey("");
+    }
+  };
+
+  const handleDownloadDocument = async (document) => {
+    if (!selectedEmployeeId) return;
+
+    try {
+      const res = await api.get(`/employees/${selectedEmployeeId}/documents/download/${document.id}`, {
+        responseType: "blob",
+      });
+
+      const contentDisposition = res.headers["content-disposition"] || "";
+      const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
+      const filename = filenameMatch?.[1] || document.fileName || "employee-document.docx";
+
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to download document.", {
+        title: "Download failed",
+      });
+    }
+  };
+
+  const handleRenameDocument = async (document) => {
+    if (!selectedEmployeeId) return;
+
+    const nextTitle = window.prompt("Rename document", document.title);
+    if (!nextTitle || nextTitle.trim() === document.title) return;
+
+    setManagingDocumentId(`rename-${document.id}`);
+    try {
+      const res = await api.patch(`/employees/${selectedEmployeeId}/documents/${document.id}`, {
+        title: nextTitle.trim(),
+      });
+
+      const updatedDocument = res.data.data.document;
+      setDocuments((current) =>
+        current.map((item) => (item.id === document.id ? updatedDocument : item))
+      );
+      toast.success("Document title updated.", { title: "Document updated" });
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to rename document.", {
+        title: "Rename failed",
+      });
+    } finally {
+      setManagingDocumentId("");
+    }
+  };
+
+  const handleDeleteDocument = async (document) => {
+    if (!selectedEmployeeId) return;
+
+    const confirmed = window.confirm(`Delete "${document.title}"?`);
+    if (!confirmed) return;
+
+    setManagingDocumentId(`delete-${document.id}`);
+    try {
+      await api.delete(`/employees/${selectedEmployeeId}/documents/${document.id}`);
+      setDocuments((current) => current.filter((item) => item.id !== document.id));
+      toast.success("Document deleted.", { title: "Document removed" });
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to delete document.", {
+        title: "Delete failed",
+      });
+    } finally {
+      setManagingDocumentId("");
     }
   };
 
@@ -720,11 +830,18 @@ export default function Employees() {
           employee={selectedEmployee}
           loading={loadingSelectedEmployee}
           documentTemplates={loadingDocumentTemplates ? [] : documentTemplates}
+          documents={documents}
+          loadingDocuments={loadingDocuments}
+          managingDocumentId={managingDocumentId}
           generatingTemplateKey={generatingTemplateKey}
           onGenerateDocument={handleGenerateDocument}
+          onDownloadDocument={handleDownloadDocument}
+          onRenameDocument={handleRenameDocument}
+          onDeleteDocument={handleDeleteDocument}
           onClose={() => {
             setSelectedEmployeeId(null);
             setSelectedEmployee(null);
+            setDocuments([]);
           }}
           onEdit={() => selectedEmployeeId && openEditModal(selectedEmployeeId)}
           onArchive={() => selectedEmployee && handleDeactivate(selectedEmployee)}

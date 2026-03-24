@@ -4,8 +4,14 @@ export function EmployeeDetailsDrawer({
   employee,
   loading,
   documentTemplates = [],
+  documents = [],
+  loadingDocuments = false,
+  managingDocumentId = "",
   generatingTemplateKey = "",
   onGenerateDocument,
+  onDownloadDocument,
+  onRenameDocument,
+  onDeleteDocument,
   onClose,
   onEdit,
   onArchive,
@@ -132,6 +138,82 @@ export function EmployeeDetailsDrawer({
                   </div>
                 </section>
               ) : null}
+
+              <section
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: "#fff",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div>
+                  <p style={{ margin: "0 0 4px 0", fontSize: 14, fontWeight: 800, color: "#1e293b" }}>
+                    Stored documents
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
+                    Download previously generated files for this employee.
+                  </p>
+                </div>
+
+                {loadingDocuments ? (
+                  <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>Loading documents...</p>
+                ) : documents.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 12, color: "#94a3b8" }}>No stored documents yet.</p>
+                ) : (
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {documents.map((document) => (
+                      <div
+                        key={document.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 12,
+                          padding: "12px 14px",
+                          borderRadius: 12,
+                          backgroundColor: "#f8fafc",
+                          border: "1px solid #e2e8f0",
+                        }}
+                      >
+                        <div>
+                          <p style={{ margin: "0 0 4px 0", fontSize: 13, fontWeight: 700, color: "#334155" }}>
+                            {document.title}
+                          </p>
+                          <p style={{ margin: 0, fontSize: 11, color: "#94a3b8" }}>
+                            {new Date(document.createdAt).toLocaleString("en-GB")} · {document.fileName}
+                          </p>
+                        </div>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                          <ActionChip tone="primary" onClick={() => onDownloadDocument(document)}>
+                            Download
+                          </ActionChip>
+                          {canManage ? (
+                            <>
+                              <ActionChip
+                                onClick={() => onRenameDocument(document)}
+                                disabled={managingDocumentId === `rename-${document.id}`}
+                              >
+                                {managingDocumentId === `rename-${document.id}` ? "Saving..." : "Rename"}
+                              </ActionChip>
+                              <ActionChip
+                                tone="danger"
+                                onClick={() => onDeleteDocument(document)}
+                                disabled={managingDocumentId === `delete-${document.id}`}
+                              >
+                                {managingDocumentId === `delete-${document.id}` ? "Deleting..." : "Delete"}
+                              </ActionChip>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
             </>
           )}
         </div>

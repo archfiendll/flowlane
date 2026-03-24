@@ -1,5 +1,3 @@
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 const PizZip = require('pizzip');
@@ -7,6 +5,7 @@ const Docxtemplater = require('docxtemplater');
 const prisma = require('../config/prisma');
 
 const TEMPLATE_DIRECTORY = path.join(__dirname, '../../templates/documents');
+const STORAGE_DIRECTORY = path.join(__dirname, '../../storage/employees');
 
 const DOCUMENT_TEMPLATES = [
   {
@@ -43,6 +42,10 @@ const DOCUMENT_TEMPLATES = [
 
 function getDocumentTemplates() {
   return DOCUMENT_TEMPLATES.map(({ key, label }) => ({ key, label }));
+}
+
+function ensureDirectory(directoryPath) {
+  fs.mkdirSync(directoryPath, { recursive: true });
 }
 
 function formatDate(value) {
@@ -124,6 +127,11 @@ function sanitizeFilenamePart(value) {
     .replace(/^-+|-+$/g, '');
 }
 
+function buildStoredFileName(templateKey, employee) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  return `${sanitizeFilenamePart(templateKey)}-${sanitizeFilenamePart(employee.firstName)}-${sanitizeFilenamePart(employee.lastName)}-${timestamp}.docx`;
+}
+
 function buildTemplateData(employee, company) {
   const profileRO = employee.profileRO || {};
   const companyProfileRO = company.profileRO || {};
@@ -170,7 +178,7 @@ function buildTemplateData(employee, company) {
   };
 }
 
-async function generateEmployeeDocument(companyId, employeeId, templateKey) {
+async function generateEmployeeDocument(companyId, employeeId, templateKey, generatedById = null) {
   const template = DOCUMENT_TEMPLATES.find((item) => item.key === templateKey);
 
   if (!template) {
@@ -200,6 +208,7 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey) {
   const templatePath = path.join(TEMPLATE_DIRECTORY, template.filename);
   const content = fs.readFileSync(templatePath, 'binary');
   const zip = new PizZip(content);
+  const templateData = buildTemplateData(employee, employee.company);
 
   const doc = new Docxtemplater(zip, {
     delimiters: { start: '{{', end: '}}' },
@@ -207,21 +216,194 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey) {
     linebreaks: true,
   });
 
-  doc.render(buildTemplateData(employee, employee.company));
+  doc.render(templateData);
 
   const buffer = doc.getZip().generate({
     type: 'nodebuffer',
     compression: 'DEFLATE',
   });
 
+  const employeeFolder = path.join(STORAGE_DIRECTORY, String(employee.id), 'documents');
+  ensureDirectory(employeeFolder);
+
+  const fileName = buildStoredFileName(template.key, employee);
+  const absolutePath = path.join(employeeFolder, fileName);
+  fs.writeFileSync(absolutePath, buffer);
+
+  const documentRecord = await prisma.employeeDocument.create({
+    data: {
+      employeeId: employee.id,
+      companyId,
+      templateKey: template.key,
+      title: template.label,
+      fileName,
+      storagePath: absolutePath,
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      generatedById,
+      payloadJson: templateData,
+    },
+    select: {
+      id: true,
+      title: true,
+      fileName: true,
+      templateKey: true,
+      createdAt: true,
+      mimeType: true,
+      storagePath: true,
+    },
+  });
+
   return {
+    id: documentRecord.id,
     buffer,
-    contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    filename: `${sanitizeFilenamePart(template.key)}-${sanitizeFilenamePart(employee.firstName)}-${sanitizeFilenamePart(employee.lastName)}.docx`,
+    contentType: documentRecord.mimeType,
+    filename: documentRecord.fileName,
+    document: documentRecord,
   };
 }
 
+async function listEmployeeDocuments(companyId, employeeId) {
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, companyId },
+    select: { id: true },
+  });
+
+  if (!employee) {
+    const err = new Error('Employee not found');
+    err.status = 404;
+    throw err;
+  }
+
+  return prisma.employeeDocument.findMany({
+    where: { employeeId, companyId },
+    select: {
+      id: true,
+      title: true,
+      templateKey: true,
+      fileName: true,
+      mimeType: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+async function getEmployeeDocument(companyId, employeeId, documentId) {
+  const document = await prisma.employeeDocument.findFirst({
+    where: {
+      id: documentId,
+      employeeId,
+      companyId,
+    },
+    select: {
+      id: true,
+      title: true,
+      templateKey: true,
+      fileName: true,
+      mimeType: true,
+      storagePath: true,
+      createdAt: true,
+    },
+  });
+
+  if (!document) {
+    const err = new Error('Document not found');
+    err.status = 404;
+    throw err;
+  }
+
+  if (!fs.existsSync(document.storagePath)) {
+    const err = new Error('Stored document file not found');
+    err.status = 404;
+    throw err;
+  }
+
+  return {
+    ...document,
+    buffer: fs.readFileSync(document.storagePath),
+  };
+}
+
+async function updateEmployeeDocument(companyId, employeeId, documentId, data) {
+  const title = data?.title?.trim();
+
+  if (!title) {
+    const err = new Error('Document title is required');
+    err.status = 400;
+    throw err;
+  }
+
+  const document = await prisma.employeeDocument.findFirst({
+    where: {
+      id: documentId,
+      employeeId,
+      companyId,
+    },
+    select: {
+      id: true,
+      title: true,
+      templateKey: true,
+      fileName: true,
+      mimeType: true,
+      createdAt: true,
+    },
+  });
+
+  if (!document) {
+    const err = new Error('Document not found');
+    err.status = 404;
+    throw err;
+  }
+
+  return prisma.employeeDocument.update({
+    where: { id: documentId },
+    data: { title },
+    select: {
+      id: true,
+      title: true,
+      templateKey: true,
+      fileName: true,
+      mimeType: true,
+      createdAt: true,
+    },
+  });
+}
+
+async function deleteEmployeeDocument(companyId, employeeId, documentId) {
+  const document = await prisma.employeeDocument.findFirst({
+    where: {
+      id: documentId,
+      employeeId,
+      companyId,
+    },
+    select: {
+      id: true,
+      storagePath: true,
+    },
+  });
+
+  if (!document) {
+    const err = new Error('Document not found');
+    err.status = 404;
+    throw err;
+  }
+
+  await prisma.employeeDocument.delete({
+    where: { id: documentId },
+  });
+
+  if (document.storagePath && fs.existsSync(document.storagePath)) {
+    fs.unlinkSync(document.storagePath);
+  }
+
+  return { id: documentId };
+}
+
 module.exports = {
+  deleteEmployeeDocument,
   generateEmployeeDocument,
+  getEmployeeDocument,
   getDocumentTemplates,
+  listEmployeeDocuments,
+  updateEmployeeDocument,
 };
