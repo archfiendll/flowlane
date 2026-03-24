@@ -94,6 +94,20 @@ async function generateDocument(req, res) {
   return res.status(200).send(result.buffer);
 }
 
+async function uploadDocument(req, res) {
+  const employeeId = parseInt(req.params.id, 10);
+  if (!employeeId) return sendError(res, 'Invalid ID', errorCodes.VALIDATION_001, 400);
+
+  const document = await employeeDocumentService.uploadEmployeeDocument(
+    req.companyId,
+    employeeId,
+    req.body,
+    req.user.id,
+  );
+
+  return sendSuccess(res, { document }, 201);
+}
+
 async function downloadDocument(req, res) {
   const employeeId = parseInt(req.params.id, 10);
   const documentId = parseInt(req.params.documentId, 10);
@@ -158,6 +172,7 @@ module.exports = {
   listDocumentTemplates,
   listDocuments,
   generateDocument,
+  uploadDocument,
   downloadDocument,
   updateDocument,
   removeDocument,

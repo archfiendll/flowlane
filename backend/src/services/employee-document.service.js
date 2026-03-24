@@ -259,6 +259,65 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
   };
 }
 
+async function uploadEmployeeDocument(companyId, employeeId, data, generatedById = null) {
+  const employee = await prisma.employee.findFirst({
+    where: { id: employeeId, companyId },
+    select: { id: true },
+  });
+
+  if (!employee) {
+    const err = new Error('Employee not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const fileName = data?.fileName?.trim();
+  const mimeType = data?.mimeType?.trim() || 'application/octet-stream';
+  const contentBase64 = data?.contentBase64?.trim();
+  const title = data?.title?.trim() || fileName || 'Uploaded document';
+
+  if (!fileName || !contentBase64) {
+    const err = new Error('File name and content are required');
+    err.status = 400;
+    throw err;
+  }
+
+  const buffer = Buffer.from(contentBase64, 'base64');
+  if (!buffer.length) {
+    const err = new Error('Uploaded file is empty');
+    err.status = 400;
+    throw err;
+  }
+
+  const storedFileName = `${new Date().toISOString().replace(/[:.]/g, '-')}-${sanitizeFilenamePart(path.parse(fileName).name)}${path.extname(fileName) || ''}`;
+  const storedFile = await documentStorageService.saveDocument(
+    buffer,
+    `employees/${employee.id}/documents/${storedFileName}`,
+  );
+
+  return prisma.employeeDocument.create({
+    data: {
+      employeeId: employee.id,
+      companyId,
+      templateKey: 'uploaded',
+      title,
+      fileName,
+      storageProvider: storedFile.storageProvider,
+      storageKey: storedFile.storageKey,
+      mimeType,
+      generatedById,
+    },
+    select: {
+      id: true,
+      title: true,
+      fileName: true,
+      templateKey: true,
+      createdAt: true,
+      mimeType: true,
+    },
+  });
+}
+
 async function listEmployeeDocuments(companyId, employeeId) {
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, companyId },
@@ -396,5 +455,6 @@ module.exports = {
   getEmployeeDocument,
   getDocumentTemplates,
   listEmployeeDocuments,
+  uploadEmployeeDocument,
   updateEmployeeDocument,
 };

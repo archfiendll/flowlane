@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { ActionChip, Badge, DetailRow, EmployeeAvatar, InviteBadge, SectionSkeleton, formatDate } from "./utils.jsx";
 
 export function EmployeeDetailsDrawer({
@@ -7,11 +8,13 @@ export function EmployeeDetailsDrawer({
   documents = [],
   loadingDocuments = false,
   managingDocumentId = "",
+  uploadingDocument = false,
   generatingTemplateKey = "",
   onGenerateDocument,
   onDownloadDocument,
   onRenameDocument,
   onDeleteDocument,
+  onUploadDocument,
   onClose,
   onEdit,
   onArchive,
@@ -20,6 +23,8 @@ export function EmployeeDetailsDrawer({
   restoring,
   canManage,
 }) {
+  const uploadInputRef = useRef(null);
+
   return (
     <div
       style={{
@@ -125,6 +130,22 @@ export function EmployeeDetailsDrawer({
                   </div>
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <input
+                      ref={uploadInputRef}
+                      type="file"
+                      style={{ display: "none" }}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) onUploadDocument(file);
+                        event.target.value = "";
+                      }}
+                    />
+                    <ActionChip
+                      onClick={() => uploadInputRef.current?.click()}
+                      disabled={uploadingDocument}
+                    >
+                      {uploadingDocument ? "Uploading..." : "Upload document"}
+                    </ActionChip>
                     {documentTemplates.map((template) => (
                       <ActionChip
                         key={template.key}

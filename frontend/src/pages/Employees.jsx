@@ -37,6 +37,7 @@ export default function Employees() {
   const [documents, setDocuments] = useState([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [managingDocumentId, setManagingDocumentId] = useState("");
+  const [uploadingDocument, setUploadingDocument] = useState(false);
 
   const { user } = useAuth();
   const toast = useToast();
@@ -379,6 +380,44 @@ export default function Employees() {
       });
     } finally {
       setManagingDocumentId("");
+    }
+  };
+
+  const handleUploadDocument = async (file) => {
+    if (!selectedEmployeeId || !file) return;
+
+    setUploadingDocument(true);
+
+    try {
+      const fileBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(fileBuffer);
+      let binary = "";
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+
+      const defaultTitle = file.name.replace(/\.[^.]+$/, "");
+      const title = window.prompt("Document title", defaultTitle)?.trim();
+      if (!title) {
+        setUploadingDocument(false);
+        return;
+      }
+
+      const res = await api.post(`/employees/${selectedEmployeeId}/documents/upload`, {
+        title,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        contentBase64: window.btoa(binary),
+      });
+
+      setDocuments((current) => [res.data.data.document, ...current]);
+      toast.success(`Uploaded ${file.name}.`, { title: "Document uploaded" });
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || "Failed to upload document.", {
+        title: "Upload failed",
+      });
+    } finally {
+      setUploadingDocument(false);
     }
   };
 
@@ -833,11 +872,13 @@ export default function Employees() {
           documents={documents}
           loadingDocuments={loadingDocuments}
           managingDocumentId={managingDocumentId}
+          uploadingDocument={uploadingDocument}
           generatingTemplateKey={generatingTemplateKey}
           onGenerateDocument={handleGenerateDocument}
           onDownloadDocument={handleDownloadDocument}
           onRenameDocument={handleRenameDocument}
           onDeleteDocument={handleDeleteDocument}
+          onUploadDocument={handleUploadDocument}
           onClose={() => {
             setSelectedEmployeeId(null);
             setSelectedEmployee(null);
