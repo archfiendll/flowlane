@@ -3,9 +3,9 @@ const path = require('path');
 const PizZip = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const prisma = require('../config/prisma');
+const documentStorageService = require('./document-storage.service');
 
 const TEMPLATE_DIRECTORY = path.join(__dirname, '../../templates/documents');
-const STORAGE_DIRECTORY = path.join(__dirname, '../../storage/employees');
 
 const DOCUMENT_TEMPLATES = [
   {
@@ -42,10 +42,6 @@ const DOCUMENT_TEMPLATES = [
 
 function getDocumentTemplates() {
   return DOCUMENT_TEMPLATES.map(({ key, label }) => ({ key, label }));
-}
-
-function ensureDirectory(directoryPath) {
-  fs.mkdirSync(directoryPath, { recursive: true });
 }
 
 function formatDate(value) {
@@ -223,12 +219,11 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
     compression: 'DEFLATE',
   });
 
-  const employeeFolder = path.join(STORAGE_DIRECTORY, String(employee.id), 'documents');
-  ensureDirectory(employeeFolder);
-
   const fileName = buildStoredFileName(template.key, employee);
-  const absolutePath = path.join(employeeFolder, fileName);
-  fs.writeFileSync(absolutePath, buffer);
+  const storedFile = await documentStorageService.saveDocument(
+    buffer,
+    `employees/${employee.id}/documents/${fileName}`,
+  );
 
   const documentRecord = await prisma.employeeDocument.create({
     data: {
@@ -237,7 +232,8 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
       templateKey: template.key,
       title: template.label,
       fileName,
-      storagePath: absolutePath,
+      storageProvider: storedFile.storageProvider,
+      storageKey: storedFile.storageKey,
       mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       generatedById,
       payloadJson: templateData,
@@ -249,7 +245,8 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
       templateKey: true,
       createdAt: true,
       mimeType: true,
-      storagePath: true,
+      storageProvider: true,
+      storageKey: true,
     },
   });
 
@@ -301,7 +298,8 @@ async function getEmployeeDocument(companyId, employeeId, documentId) {
       templateKey: true,
       fileName: true,
       mimeType: true,
-      storagePath: true,
+      storageProvider: true,
+      storageKey: true,
       createdAt: true,
     },
   });
@@ -312,15 +310,9 @@ async function getEmployeeDocument(companyId, employeeId, documentId) {
     throw err;
   }
 
-  if (!fs.existsSync(document.storagePath)) {
-    const err = new Error('Stored document file not found');
-    err.status = 404;
-    throw err;
-  }
-
   return {
     ...document,
-    buffer: fs.readFileSync(document.storagePath),
+    buffer: await documentStorageService.readDocument(document.storageProvider, document.storageKey),
   };
 }
 
@@ -378,7 +370,8 @@ async function deleteEmployeeDocument(companyId, employeeId, documentId) {
     },
     select: {
       id: true,
-      storagePath: true,
+      storageProvider: true,
+      storageKey: true,
     },
   });
 
@@ -392,9 +385,7 @@ async function deleteEmployeeDocument(companyId, employeeId, documentId) {
     where: { id: documentId },
   });
 
-  if (document.storagePath && fs.existsSync(document.storagePath)) {
-    fs.unlinkSync(document.storagePath);
-  }
+  await documentStorageService.removeDocument(document.storageProvider, document.storageKey);
 
   return { id: documentId };
 }

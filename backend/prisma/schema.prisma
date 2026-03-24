@@ -239,7 +239,8 @@ model EmployeeDocument {
   templateKey   String
   title         String
   fileName      String
-  storagePath   String
+  storageProvider String @default("local")
+  storageKey    String
   mimeType      String
   generatedById Int?
   payloadJson   Json?
