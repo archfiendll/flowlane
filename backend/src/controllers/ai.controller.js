@@ -15,7 +15,7 @@ async function chat(req, res) {
     question,
   });
 
-  return sendSuccess(res, result);
+  return sendSuccess(res, { answer: result.answer });
 }
 
 module.exports = { chat };

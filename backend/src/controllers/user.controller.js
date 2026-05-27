@@ -3,7 +3,7 @@ const userService = require('../services/user.service');
 const { sendSuccess } = require('../utils/response');
 
 const listUsers = asyncHandler(async (req, res) => {
-  const users = await userService.listUsers();
+  const users = await userService.listUsers(req.user.companyId);
   return sendSuccess(res, users);
 });
 

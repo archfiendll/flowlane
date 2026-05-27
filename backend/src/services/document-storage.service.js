@@ -15,7 +15,20 @@ function normalizeStorageKey(storageKey) {
 }
 
 function resolveLocalPath(storageKey) {
-  return path.join(LOCAL_STORAGE_ROOT, normalizeStorageKey(storageKey));
+  const normalizedKey = normalizeStorageKey(storageKey);
+  const absolutePath = path.resolve(LOCAL_STORAGE_ROOT, normalizedKey);
+  const relativePath = path.relative(LOCAL_STORAGE_ROOT, absolutePath);
+
+  if (
+    relativePath.startsWith('..')
+    || path.isAbsolute(relativePath)
+  ) {
+    const err = new Error('Invalid storage key');
+    err.status = 400;
+    throw err;
+  }
+
+  return absolutePath;
 }
 
 async function saveDocument(buffer, storageKey) {

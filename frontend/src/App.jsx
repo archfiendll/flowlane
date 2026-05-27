@@ -13,6 +13,7 @@ import Invitations from "./pages/Invitations.jsx";
 import Register from "./pages/Register.jsx";
 import AcceptInvite from "./pages/AcceptInvite.jsx";
 import CompanySetup from "./pages/CompanySetup.jsx";
+import DocumentTemplates from "./pages/DocumentTemplates.jsx";
 
 function DefaultRouteRedirect() {
   const { defaultRoute, isAuthenticated } = useAuth();
@@ -83,6 +84,14 @@ export default function App() {
           element={(
             <ProtectedRoute roles={["admin", "manager"]}>
               <Invitations />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/document-templates"
+          element={(
+            <ProtectedRoute roles={["admin"]}>
+              <DocumentTemplates />
             </ProtectedRoute>
           )}
         />
