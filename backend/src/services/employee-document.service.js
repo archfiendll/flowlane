@@ -44,6 +44,41 @@ function getDocumentTemplates() {
   return DOCUMENT_TEMPLATES.map(({ key, label }) => ({ key, label }));
 }
 
+async function listAvailableDocumentTemplates(companyId) {
+  const uploadedTemplates = await prisma.documentTemplate.findMany({
+    where: { companyId },
+    select: {
+      id: true,
+      key: true,
+      name: true,
+      category: true,
+      fileName: true,
+      createdAt: true,
+    },
+    orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+  });
+
+  const builtInTemplates = DOCUMENT_TEMPLATES.map(({ key, label }) => ({
+    id: `builtin:${key}`,
+    key,
+    label,
+    category: 'Built-in',
+    source: 'BUILT_IN',
+  }));
+
+  const customTemplates = uploadedTemplates.map((template) => ({
+    id: `uploaded:${template.id}`,
+    key: template.key,
+    label: template.name,
+    category: template.category || 'Uploaded',
+    source: 'UPLOADED_TEMPLATE',
+    fileName: template.fileName,
+    createdAt: template.createdAt,
+  }));
+
+  return [...builtInTemplates, ...customTemplates];
+}
+
 function formatDate(value) {
   if (!value) return '';
 
@@ -175,14 +210,6 @@ function buildTemplateData(employee, company) {
 }
 
 async function generateEmployeeDocument(companyId, employeeId, templateKey, generatedById = null) {
-  const template = DOCUMENT_TEMPLATES.find((item) => item.key === templateKey);
-
-  if (!template) {
-    const err = new Error('Document template not found');
-    err.status = 404;
-    throw err;
-  }
-
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, companyId },
     include: {
@@ -201,10 +228,34 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
     throw err;
   }
 
-  const templatePath = path.join(TEMPLATE_DIRECTORY, template.filename);
-  const content = fs.readFileSync(templatePath, 'binary');
-  const zip = new PizZip(content);
   const templateData = buildTemplateData(employee, employee.company);
+  const builtInTemplate = DOCUMENT_TEMPLATES.find((item) => item.key === templateKey);
+  const uploadedTemplate = builtInTemplate
+    ? null
+    : await prisma.documentTemplate.findFirst({
+      where: { companyId, key: templateKey },
+      select: {
+        id: true,
+        key: true,
+        name: true,
+        category: true,
+        fileName: true,
+        mimeType: true,
+        storageProvider: true,
+        storageKey: true,
+      },
+    });
+
+  if (!builtInTemplate && !uploadedTemplate) {
+    const err = new Error('Document template not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const content = builtInTemplate
+    ? fs.readFileSync(path.join(TEMPLATE_DIRECTORY, builtInTemplate.filename), 'binary')
+    : (await documentStorageService.readDocument(uploadedTemplate.storageProvider, uploadedTemplate.storageKey)).toString('binary');
+  const zip = new PizZip(content);
 
   const doc = new Docxtemplater(zip, {
     delimiters: { start: '{{', end: '}}' },
@@ -219,7 +270,8 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
     compression: 'DEFLATE',
   });
 
-  const fileName = buildStoredFileName(template.key, employee);
+  const templateReference = builtInTemplate || uploadedTemplate;
+  const fileName = buildStoredFileName(templateReference.key, employee);
   const storedFile = await documentStorageService.saveDocument(
     buffer,
     `employees/${employee.id}/documents/${fileName}`,
@@ -230,9 +282,9 @@ async function generateEmployeeDocument(companyId, employeeId, templateKey, gene
       employeeId: employee.id,
       companyId,
       source: 'GENERATED',
-      templateKey: template.key,
-      title: template.label,
-      category: 'Contract',
+      templateKey: templateReference.key,
+      title: builtInTemplate ? builtInTemplate.label : uploadedTemplate.name,
+      category: builtInTemplate ? 'Contract' : uploadedTemplate.category || 'Template',
       fileName,
       storageProvider: storedFile.storageProvider,
       storageKey: storedFile.storageKey,
@@ -481,6 +533,7 @@ module.exports = {
   generateEmployeeDocument,
   getEmployeeDocument,
   getDocumentTemplates,
+  listAvailableDocumentTemplates,
   listEmployeeDocuments,
   uploadEmployeeDocument,
   updateEmployeeDocument,

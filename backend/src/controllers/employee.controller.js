@@ -66,7 +66,7 @@ async function restore(req, res) {
 }
 
 async function listDocumentTemplates(req, res) {
-  const templates = employeeDocumentService.getDocumentTemplates();
+  const templates = await employeeDocumentService.listAvailableDocumentTemplates(req.companyId);
   return sendSuccess(res, { templates });
 }
 

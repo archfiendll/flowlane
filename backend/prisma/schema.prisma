@@ -90,6 +90,7 @@ model Company {
 
   users         User[]
   employees     Employee[]
+  documentTemplates DocumentTemplate[]
   departments   Department[]
   invitations   Invitation[]
   profileRO     CompanyProfileRO?
@@ -258,5 +259,29 @@ model EmployeeDocument {
   employee      Employee @relation(fields: [employeeId], references: [id])
 
   @@index([employeeId, createdAt])
+  @@index([companyId, createdAt])
+}
+
+model DocumentTemplate {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  name        String
+  key         String
+  category    String?
+  description String?
+  fileName    String
+  mimeType    String
+  storageProvider String @default("local")
+  storageKey  String
+  contentHtml String?
+  tagsJson    Json?
+  createdById Int?
+  updatedById Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, key])
   @@index([companyId, createdAt])
 }

@@ -6,6 +6,10 @@ function getDocumentTone(document) {
   return "primary";
 }
 
+function getTemplateTone(template) {
+  return template.source === "UPLOADED_TEMPLATE" ? "neutral" : "primary";
+}
+
 export function EmployeeDetailsDrawer({
   employee,
   loading,
@@ -152,14 +156,20 @@ export function EmployeeDetailsDrawer({
                       {uploadingDocument ? "Uploading..." : "Upload document"}
                     </ActionChip>
                     {documentTemplates.map((template) => (
-                      <ActionChip
-                        key={template.key}
-                        tone="primary"
-                        onClick={() => onGenerateDocument(template)}
-                        disabled={generatingTemplateKey === template.key}
-                      >
-                        {generatingTemplateKey === template.key ? "Generating..." : template.label}
-                      </ActionChip>
+                      <div key={template.id || template.key} style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                        <ActionChip
+                          tone={getTemplateTone(template)}
+                          onClick={() => onGenerateDocument(template)}
+                          disabled={generatingTemplateKey === template.key}
+                        >
+                          {generatingTemplateKey === template.key ? "Generating..." : template.label}
+                        </ActionChip>
+                        {template.source === "UPLOADED_TEMPLATE" ? (
+                          <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>
+                            Custom
+                          </span>
+                        ) : null}
+                      </div>
                     ))}
                   </div>
                 </section>

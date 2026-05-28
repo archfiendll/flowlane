@@ -39,6 +39,7 @@ export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { logout, user } = useAuth();
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
+  const isDocumentTemplatesPage = location.pathname === "/document-templates";
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f1f5f9" }}>
@@ -174,7 +175,7 @@ export default function MainLayout() {
 
         {/* Page content */}
         <main style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
-          <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <div style={{ maxWidth: isDocumentTemplatesPage ? 1420 : 960, margin: "0 auto" }}>
             <Outlet />
           </div>
         </main>
