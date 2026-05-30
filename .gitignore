@@ -40,3 +40,7 @@ backend/storage/
 
 # Local-only files
 *.local
+tmp_cv_fix.html
+package-lock.json
+package.json
+docs/internal/
