@@ -6,7 +6,7 @@ import { StatCard, StatusPill, SurfaceCard } from "../components/ui.jsx";
 const fieldStyle = {
   width: "100%",
   padding: "10px 12px",
-  border: "1.5px solid #cbd5e1",
+  border: "1px solid #e0e0e0",
   borderRadius: 10,
   fontSize: 14,
   color: "#1e293b",
@@ -18,11 +18,10 @@ const fieldStyle = {
 const labelStyle = {
   display: "block",
   marginBottom: 6,
-  fontSize: 11,
-  color: "#64748b",
-  fontWeight: 800,
-  letterSpacing: "1.5px",
-  textTransform: "uppercase",
+  fontSize: 12,
+  color: "#6b6b6b",
+  fontWeight: 400,
+  letterSpacing: "0",
 };
 
 const EMPTY_FORM = {

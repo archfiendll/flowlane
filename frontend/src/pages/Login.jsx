@@ -30,7 +30,7 @@ export default function Login() {
 
   const inputStyle = {
     width: "100%", padding: "10px 14px",
-    border: "1.5px solid #cbd5e1",
+    border: "1px solid #e0e0e0",
     borderRadius: 8, fontSize: 14,
     color: "#1e293b", backgroundColor: "#f8fafc",
     outline: "none", boxSizing: "border-box",
@@ -38,9 +38,9 @@ export default function Login() {
   };
 
   const labelStyle = {
-    display: "block", fontSize: 11, fontWeight: 700,
-    color: "#64748b", letterSpacing: "1.5px",
-    textTransform: "uppercase", marginBottom: 6,
+    display: "block", fontSize: 12, fontWeight: 400,
+    color: "#6b6b6b", letterSpacing: "0",
+    marginBottom: 6,
   };
   const reason = searchParams.get("reason");
   const infoMessage =
@@ -112,8 +112,8 @@ export default function Login() {
                   autoComplete="email"
                   required
                   style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = "#1d6fc4"}
-                  onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+                  onFocus={e => e.target.style.borderColor = "#111111"}
+                  onBlur={e => e.target.style.borderColor = "#e0e0e0"}
                 />
               </div>
 
@@ -128,8 +128,8 @@ export default function Login() {
                     autoComplete="current-password"
                     required
                     style={{ ...inputStyle, paddingRight: 44 }}
-                    onFocus={e => e.target.style.borderColor = "#1d6fc4"}
-                    onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+                    onFocus={e => e.target.style.borderColor = "#111111"}
+                    onBlur={e => e.target.style.borderColor = "#e0e0e0"}
                   />
                   <button
                     type="button"

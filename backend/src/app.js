@@ -12,6 +12,7 @@ const dashboardRoutes = require('./routes/dashboard.routes');
 const companyRoutes = require('./routes/company.routes');
 const departmentRoutes = require('./routes/department.routes');
 const vacationRoutes = require('./routes/vacation.routes');
+const reportingRoutes = require('./routes/reporting.routes');
 const aiRoutes = require('./routes/ai.routes');
 const documentTemplateRoutes = require('./routes/document-template.routes');
 
@@ -36,6 +37,7 @@ app.use('/dashboard', dashboardRoutes);
 app.use('/company', companyRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/vacations', vacationRoutes);
+app.use('/reports', reportingRoutes);
 app.use('/ai', aiRoutes);
 app.use('/document-templates', documentTemplateRoutes);
 

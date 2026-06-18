@@ -21,7 +21,7 @@ What is working today:
 - cloud-ready document storage model using storage provider + key
 - admin document templates library with full backend support
 - backend AI assistant endpoint with employee/admin context building (in progress)
-- reporting layer (in progress)
+- admin reporting page for vacations and payroll with role/department filters
 
 What still needs tightening:
 - vacation workflow and audit clarity
@@ -66,6 +66,7 @@ What still needs tightening:
 | Cloud-ready document storage abstraction | done |
 | Admin document templates library (frontend) | done |
 | Document template backend (controller, routes, service) | done |
+| Admin reports for vacations and payroll | done |
 | Department CRUD | done |
 | Invitation send / accept / revoke | done |
 | Invitation management page | done |
@@ -132,9 +133,10 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 ### Reporting
 | Task | Status |
 |------|--------|
-| Define reporting scope and data model | not started |
-| Backend reporting endpoints | not started |
-| Frontend reporting views | not started |
+| Define reporting scope and data model | done |
+| Backend reporting endpoints | done |
+| Frontend reporting views | done |
+| Charts / export / historical trends | not started |
 
 ---
 
@@ -142,7 +144,7 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 | Priority | Task | Why next |
 |------|--------|--------|
 | 1 | AI assistant UI and retrieval layer | The backend AI slice is implemented; next step is connecting it to real employee and company data and exposing it in the frontend. |
-| 2 | Reporting | Foundation for surfacing HR data in a structured way for admins and managers. |
+| 2 | Reporting | Current admin report page covers vacations and payroll; charts and exports can follow later. |
 | 3 | Vacation workflow cleanup | Functional now, but still needs audit clarity and a cleaner explicit workflow model. |
 | 4 | Automated tests | Auth, invitation acceptance, employee linking, document flows, and vacation flows now justify integration coverage. |
 | 5 | Deployment / CI | The app is becoming portfolio-ready and should be easier to run and verify consistently. |
@@ -179,7 +181,7 @@ The intended LLM direction is a focused assistant inside Flowlane for practical 
 | Admin document templates library | done |
 | Audit log model and UI | not started |
 | AI HR assistant | in progress |
-| Reporting | in progress |
+| Reporting | done |
 
 ---
 

@@ -4,7 +4,7 @@ import { calculateVacationDays, formatVacationDate, getVacationStatusMeta } from
 const inputStyle = {
   width: "100%",
   padding: "10px 12px",
-  border: "1.5px solid #cbd5e1",
+  border: "1px solid #e0e0e0",
   borderRadius: 10,
   fontSize: 14,
   backgroundColor: "#f8fafc",
@@ -65,7 +65,7 @@ export function VacationTableSkeleton({ canReview }) {
             gap: 12,
             padding: "18px 20px",
             borderRadius: 16,
-            border: "1px solid #e2e8f0",
+            border: "1px solid #efefef",
             backgroundColor: "#fff",
           }}
         >
@@ -96,4 +96,3 @@ export function VacationDuration({ startDate, endDate }) {
 }
 
 export { calculateVacationDays, formatVacationDate, inputStyle };
-

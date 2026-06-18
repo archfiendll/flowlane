@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export const inputStyle = {
   width: "100%",
   padding: "9px 12px",
-  border: "1.5px solid #cbd5e1",
+  border: "1px solid #e0e0e0",
   borderRadius: 8,
   fontSize: 14,
   color: "#1e293b",
@@ -15,10 +15,9 @@ export const inputStyle = {
 const labelStyle = {
   display: "block",
   fontSize: 11,
-  fontWeight: 700,
-  color: "#64748b",
-  letterSpacing: "1.5px",
-  textTransform: "uppercase",
+  fontWeight: 400,
+  color: "#6b6b6b",
+  letterSpacing: "0",
   marginBottom: 5,
 };
 
@@ -219,12 +218,12 @@ export function SectionSkeleton({ title = "Loading..." }) {
     <div
       style={{
         backgroundColor: "#fff",
-        border: "1px solid #e2e8f0",
+        border: "1px solid #efefef",
         borderRadius: 12,
         padding: 24,
       }}
     >
-      <p style={{ margin: "0 0 12px 0", fontSize: 14, fontWeight: 700, color: "#64748b" }}>{title}</p>
+      <p style={{ margin: "0 0 12px 0", fontSize: 14, fontWeight: 600, color: "#111111" }}>{title}</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[...Array(6)].map((_, index) => (
           <div key={index} style={{ height: 14, borderRadius: 999, backgroundColor: "#f1f5f9" }} />
@@ -257,11 +256,10 @@ export function formatDate(value) {
 export function DetailRow({ label, value }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <span style={{ fontSize: 11, letterSpacing: "1.4px", textTransform: "uppercase", fontWeight: 700, color: "#94a3b8" }}>
+      <span style={{ fontSize: 12, fontWeight: 400, color: "#6b6b6b" }}>
         {label}
       </span>
       <span style={{ fontSize: 14, color: "#334155", fontWeight: 600 }}>{value || "—"}</span>
     </div>
   );
 }
-

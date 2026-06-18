@@ -145,7 +145,7 @@ export default function Vacations() {
 
       {canReview ? (
         <SurfaceCard style={{ padding: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b", letterSpacing: "1.5px", textTransform: "uppercase" }}>Department filter</span>
+          <span style={{ fontSize: 12, fontWeight: 400, color: "#6b6b6b", letterSpacing: "0" }}>Department filter</span>
           <div style={{ width: 280 }}>
             <VacationSelect value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
               <option value="">All departments</option>

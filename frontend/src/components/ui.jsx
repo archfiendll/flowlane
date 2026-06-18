@@ -5,9 +5,9 @@ export function SurfaceCard({ children, style }) {
     <div
       style={{
         backgroundColor: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 18,
-        boxShadow: "0 10px 28px rgba(15,23,42,0.04)",
+        border: "1px solid #efefef",
+        borderRadius: 16,
+        boxShadow: "none",
         ...style,
       }}
     >
@@ -16,30 +16,29 @@ export function SurfaceCard({ children, style }) {
   );
 }
 
-export function StatCard({ label, value, sub, accentColor, to }) {
+export function StatCard({ label, value, sub, to }) {
   const card = (
     <SurfaceCard
       style={{
         minWidth: 180,
         padding: "20px 22px",
-        borderTop: `3px solid ${accentColor}`,
-        transition: to ? "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease" : undefined,
+        transition: to ? "transform 0.15s ease, border-color 0.15s ease" : undefined,
       }}
     >
       <p
         style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: "#94a3b8",
-          letterSpacing: "1.5px",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#6b6b6b",
+          letterSpacing: "0",
           textTransform: "uppercase",
           margin: "0 0 8px 0",
         }}
       >
         {label}
       </p>
-      <p style={{ fontSize: 28, fontWeight: 800, color: "#1e293b", margin: "0 0 4px 0" }}>{value}</p>
-      {sub ? <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{sub}</p> : null}
+      <p style={{ fontSize: 36, fontWeight: 700, lineHeight: 1, color: "#111111", margin: "0 0 6px 0" }}>{value}</p>
+      {sub ? <p style={{ fontSize: 12, color: "#6b6b6b", margin: 0 }}>{sub}</p> : null}
     </SurfaceCard>
   );
 
@@ -52,17 +51,15 @@ export function StatCard({ label, value, sub, accentColor, to }) {
       onMouseEnter={(e) => {
         const element = e.currentTarget.firstChild;
         if (element) {
-          element.style.transform = "translateY(-2px)";
-          element.style.boxShadow = "0 16px 32px rgba(15,23,42,0.08)";
-          element.style.borderColor = "#bfdbfe";
+          element.style.transform = "translateY(-1px)";
+          element.style.borderColor = "#d4d4d4";
         }
       }}
       onMouseLeave={(e) => {
         const element = e.currentTarget.firstChild;
         if (element) {
           element.style.transform = "translateY(0)";
-          element.style.boxShadow = "0 10px 28px rgba(15,23,42,0.04)";
-          element.style.borderColor = "#e2e8f0";
+          element.style.borderColor = "#e5e5e5";
         }
       }}
     >
@@ -73,10 +70,10 @@ export function StatCard({ label, value, sub, accentColor, to }) {
 
 export function SectionPanel({ title, subtitle, children, style }) {
   return (
-    <SurfaceCard style={{ padding: 22, ...style }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: "0 0 4px 0", fontSize: 18, color: "#1e293b" }}>{title}</h2>
-        {subtitle ? <p style={{ margin: 0, fontSize: 13, color: "#64748b" }}>{subtitle}</p> : null}
+    <SurfaceCard style={{ padding: 20, ...style }}>
+      <div style={{ marginBottom: 14 }}>
+        <h2 style={{ margin: "0 0 4px 0", fontSize: 16, fontWeight: 600, color: "#111111" }}>{title}</h2>
+        {subtitle ? <p style={{ margin: 0, fontSize: 13, color: "#6b6b6b" }}>{subtitle}</p> : null}
       </div>
       {children}
     </SurfaceCard>
@@ -123,17 +120,17 @@ export function QuickLinkCard({ to, title, sub }) {
       onMouseEnter={(e) => {
         const element = e.currentTarget.firstChild;
         if (element) {
-          element.style.transform = "translateY(-2px)";
-          element.style.borderColor = "#bfdbfe";
-          element.style.boxShadow = "0 16px 32px rgba(15,23,42,0.08)";
+          element.style.backgroundColor = "#f5f5f5";
+          element.style.borderLeftColor = "#111111";
+          element.style.transform = "translateY(-1px)";
         }
       }}
       onMouseLeave={(e) => {
         const element = e.currentTarget.firstChild;
         if (element) {
           element.style.transform = "translateY(0)";
-          element.style.borderColor = "#e2e8f0";
-          element.style.boxShadow = "0 10px 28px rgba(15,23,42,0.04)";
+          element.style.backgroundColor = "#fff";
+          element.style.borderLeftColor = "transparent";
         }
       }}
     >
@@ -142,11 +139,12 @@ export function QuickLinkCard({ to, title, sub }) {
           display: "block",
           minWidth: 200,
           padding: "18px 20px",
-          transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+          borderLeft: "2px solid transparent",
+          transition: "transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease",
         }}
       >
-        <p style={{ fontSize: 14, fontWeight: 800, color: "#1e293b", margin: "0 0 4px 0" }}>{title} →</p>
-        <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{sub}</p>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#111111", margin: "0 0 4px 0" }}>{title}</p>
+        <p style={{ fontSize: 12, color: "#6b6b6b", margin: 0 }}>{sub}</p>
       </SurfaceCard>
     </Link>
   );

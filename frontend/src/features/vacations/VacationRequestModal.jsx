@@ -68,7 +68,7 @@ export function VacationRequestModal({ canReview, employees, onClose, onSaved })
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           {canReview ? (
             <div style={{ gridColumn: "1 / -1" }}>
-              <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+              <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
                 Employee
               </label>
               <VacationSelect
@@ -87,7 +87,7 @@ export function VacationRequestModal({ canReview, employees, onClose, onSaved })
           ) : null}
 
           <div>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
               Leave Type
             </label>
             <VacationSelect value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}>
@@ -99,21 +99,21 @@ export function VacationRequestModal({ canReview, employees, onClose, onSaved })
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
               Duration
             </label>
             <VacationDuration startDate={form.startDate} endDate={form.endDate} />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
               Start Date
             </label>
             <VacationInput type="date" style={fieldErrors.startDate ? { borderColor: "#fca5a5", backgroundColor: "#fff7f7" } : undefined} value={form.startDate} onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))} />
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+            <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
               End Date
             </label>
             <VacationInput type="date" style={fieldErrors.endDate ? { borderColor: "#fca5a5", backgroundColor: "#fff7f7" } : undefined} value={form.endDate} onChange={(event) => setForm((current) => ({ ...current, endDate: event.target.value }))} />
@@ -121,7 +121,7 @@ export function VacationRequestModal({ canReview, employees, onClose, onSaved })
         </div>
 
         <div>
-          <label style={{ display: "block", marginBottom: 6, fontSize: 11, color: "#64748b", fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase" }}>
+          <label style={{ display: "block", marginBottom: 6, fontSize: 12, color: "#6b6b6b", fontWeight: 400, letterSpacing: "0" }}>
             Note
           </label>
           <textarea
@@ -146,4 +146,3 @@ export function VacationRequestModal({ canReview, employees, onClose, onSaved })
     </div>
   );
 }
-

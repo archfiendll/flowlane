@@ -27,6 +27,7 @@ Flowlane already supports a connected first product slice:
 - employee document generation from DOCX templates
 - employee document storage with history, upload, rename, delete, and metadata
 - backend AI assistant endpoint with role-aware HR context
+- admin reporting page for vacations and payroll with role/department filters
 
 The frontend is no longer just a thin demo client. It includes:
 

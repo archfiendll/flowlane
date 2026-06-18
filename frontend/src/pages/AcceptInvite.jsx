@@ -64,7 +64,7 @@ export default function AcceptInvite() {
 
   const inputStyle = {
     width: "100%", padding: "10px 14px",
-    border: "1.5px solid #cbd5e1",
+    border: "1px solid #e0e0e0",
     borderRadius: 8, fontSize: 14,
     color: "#1e293b", backgroundColor: "#f8fafc",
     outline: "none", boxSizing: "border-box",
@@ -72,9 +72,9 @@ export default function AcceptInvite() {
   };
 
   const labelStyle = {
-    display: "block", fontSize: 11, fontWeight: 700,
-    color: "#64748b", letterSpacing: "1.5px",
-    textTransform: "uppercase", marginBottom: 6,
+    display: "block", fontSize: 12, fontWeight: 400,
+    color: "#6b6b6b", letterSpacing: "0",
+    marginBottom: 6,
   };
 
   return (
@@ -145,8 +145,8 @@ export default function AcceptInvite() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       style={inputStyle}
-                      onFocus={e => { e.target.style.borderColor = "#1d6fc4"; setShowRules(true); }}
-                      onBlur={e => e.target.style.borderColor = "#cbd5e1"}
+                      onFocus={e => { e.target.style.borderColor = "#111111"; setShowRules(true); }}
+                      onBlur={e => e.target.style.borderColor = "#e0e0e0"}
                     />
                     {showRules && (
                       <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 5 }}>

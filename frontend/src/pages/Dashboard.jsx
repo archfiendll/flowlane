@@ -125,35 +125,23 @@ export default function Dashboard() {
     : 0;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <section
         style={{
-          background: "linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)",
-          border: "1px solid #dbeafe",
-          borderRadius: 20,
+          background: "#fff",
+          border: "1px solid #e5e5e5",
+          borderRadius: 18,
           padding: "24px 26px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "flex-start",
-          gap: 18,
+          gap: 16,
           flexWrap: "wrap",
         }}
       >
         <div>
-          <p
-            style={{
-              margin: "0 0 8px 0",
-              fontSize: 11,
-              fontWeight: 700,
-              color: "#1d4ed8",
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-            }}
-          >
-            {role === "employee" ? "Personal workspace" : "Operations overview"}
-          </p>
-          <h1 style={{ fontSize: 30, fontWeight: 800, color: "#1e293b", margin: "0 0 6px 0" }}>Dashboard</h1>
-          <p style={{ fontSize: 14, color: "#64748b", margin: 0, maxWidth: 640 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 600, color: "#111111", margin: "0 0 8px 0" }}>Dashboard</h1>
+          <p style={{ fontSize: 14, color: "#6b6b6b", margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
             {isAdminOrManager
               ? `Welcome back, ${user?.email}. Here's the current state of people operations, setup progress, and invite activity across the company.`
               : `Welcome back, ${user?.email}. Here's your quick view of time off, contract context, and the actions you probably need today.`}
@@ -163,12 +151,12 @@ export default function Dashboard() {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {isAdminOrManager ? (
             <>
-              <StatusPill label={`${stats.totalEmployees} active employees`} tone="info" style={{ backgroundColor: "#fff" }} />
-              <StatusPill label={`${stats.pendingVacations} pending vacation requests`} tone="warning" style={{ backgroundColor: "#fff" }} />
+              <StatusPill label={`${stats.totalEmployees} active employees`} tone="neutral" style={{ backgroundColor: "#fff" }} />
+              <StatusPill label={`${stats.pendingVacations} pending vacation requests`} tone="neutral" style={{ backgroundColor: "#fff" }} />
             </>
           ) : stats.employee ? (
             <>
-              <StatusPill label={`${employeeDaysLeft} vacation days left`} tone="success" style={{ backgroundColor: "#fff" }} />
+              <StatusPill label={`${employeeDaysLeft} vacation days left`} tone="neutral" style={{ backgroundColor: "#fff" }} />
               <StatusPill label={`Since ${formatDashboardDate(stats.employee.startDate)}`} tone="neutral" style={{ backgroundColor: "#fff" }} />
             </>
           ) : null}
@@ -178,18 +166,19 @@ export default function Dashboard() {
       {isAdminOrManager ? (
         <>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <StatCard label="Active Employees" value={stats.totalEmployees} sub="People currently active in the company" accentColor="#1d6fc4" to="/employees" />
-            <StatCard label="Departments" value={stats.totalDepartments} sub="Teams set up across the company" accentColor="#003580" to="/departments" />
-            <StatCard label="Pending Vacations" value={stats.pendingVacations} sub="Requests waiting for a decision" accentColor={stats.pendingVacations > 0 ? "#f59e0b" : "#10b981"} to="/vacations" />
+            <StatCard label="Active Employees" value={stats.totalEmployees} sub="People currently active in the company" to="/employees" />
+            <StatCard label="Departments" value={stats.totalDepartments} sub="Teams set up across the company" to="/departments" />
+            <StatCard label="Pending Vacations" value={stats.pendingVacations} sub="Requests waiting for a decision" to="/vacations" />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16 }}>
             <SectionPanel title="Quick Access" subtitle="Jump into the workflows you’re most likely to use next.">
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                 <QuickLinkCard to="/employees" title="Employees" sub="Review records, archive staff, and manage details" />
                 <QuickLinkCard to="/departments" title="Departments" sub="Structure teams and jump into filtered employees" />
                 <QuickLinkCard to="/vacations" title="Vacations" sub="Approve or reject time off requests" />
                 <QuickLinkCard to="/invitations" title="Invitations" sub="Track pending access and resend stalled invites" />
+                <QuickLinkCard to="/reports" title="Reports" sub="Review vacation and payroll breakdowns" />
               </div>
             </SectionPanel>
 
@@ -202,7 +191,7 @@ export default function Dashboard() {
             </SectionPanel>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <SectionPanel title="Setup Checklist" subtitle="A fast read on whether the company profile is complete enough for HR workflows.">
               <div style={{ display: "grid", gap: 10 }}>
                 {companyChecklist.map((item) => (
@@ -225,13 +214,13 @@ export default function Dashboard() {
           {stats.employee ? (
             <>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                <StatCard label="Vacation Days Left" value={employeeDaysLeft} sub={`${stats.employee.vacationDaysUsed} used · ${stats.employee.vacationCarryOver} carried over`} accentColor="#10b981" to="/vacations" />
-                <StatCard label="Job Title" value={stats.employee.jobTitle} sub={stats.employee.department?.name ?? "No department"} accentColor="#1d6fc4" />
-                <StatCard label="Contract" value={stats.employee.contractType === "PERMANENT" ? "Permanent" : "Fixed Term"} sub={`Since ${formatDashboardDate(stats.employee.startDate)}`} accentColor="#003580" />
-                <StatCard label="Pending Requests" value={stats.pendingVacations} sub="Vacation requests awaiting review" accentColor={stats.pendingVacations > 0 ? "#f59e0b" : "#10b981"} to="/vacations" />
+                <StatCard label="Vacation Days Left" value={employeeDaysLeft} sub={`${stats.employee.vacationDaysUsed} used · ${stats.employee.vacationCarryOver} carried over`} to="/vacations" />
+                <StatCard label="Job Title" value={stats.employee.jobTitle} sub={stats.employee.department?.name ?? "No department"} />
+                <StatCard label="Contract" value={stats.employee.contractType === "PERMANENT" ? "Permanent" : "Fixed Term"} sub={`Since ${formatDashboardDate(stats.employee.startDate)}`} />
+                <StatCard label="Pending Requests" value={stats.pendingVacations} sub="Vacation requests awaiting review" to="/vacations" />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 16 }}>
                 <SectionPanel title="Your Profile Snapshot" subtitle="A quick reminder of the employment details currently on file.">
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <ActivityRow label="Department" value={stats.employee.department?.name || "Not assigned"} tone="info" />

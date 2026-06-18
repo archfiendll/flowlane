@@ -10,6 +10,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
+    "seed:demo": "node scripts/seed-demo-organization.js",
     "lint": "eslint src/",
     "format": "prettier --write src/"
   },

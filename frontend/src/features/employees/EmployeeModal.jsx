@@ -115,13 +115,13 @@ export function EmployeeModal({ mode = "create", employeeId = null, departments 
           display: "flex",
           flexDirection: "column",
           maxHeight: "90vh",
-          border: "1px solid rgba(226,232,240,0.9)",
+          border: "1px solid #efefef",
         }}
       >
         <div
           style={{
             padding: "20px 24px",
-            borderBottom: "1px solid #e2e8f0",
+            borderBottom: "1px solid #efefef",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -307,7 +307,7 @@ export function EmployeeModal({ mode = "create", employeeId = null, departments 
         <div
           style={{
             padding: "16px 24px",
-            borderTop: "1px solid #e2e8f0",
+            borderTop: "1px solid #efefef",
             display: "flex",
             justifyContent: "space-between",
           }}
@@ -318,7 +318,7 @@ export function EmployeeModal({ mode = "create", employeeId = null, departments 
             style={{
               padding: "9px 20px",
               backgroundColor: "transparent",
-              border: "1.5px solid #e2e8f0",
+              border: "1px solid #e0e0e0",
               borderRadius: 8,
               fontSize: 13,
               fontWeight: 600,
@@ -371,4 +371,3 @@ export function EmployeeModal({ mode = "create", employeeId = null, departments 
     </div>
   );
 }
-

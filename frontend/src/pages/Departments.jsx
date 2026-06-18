@@ -8,7 +8,7 @@ import api from "../api/client";
 const inputStyle = {
   width: "100%",
   padding: "11px 12px",
-  border: "1.5px solid #cbd5e1",
+  border: "1px solid #e0e0e0",
   borderRadius: 10,
   fontSize: 14,
   backgroundColor: "#f8fafc",
@@ -120,11 +120,10 @@ function DepartmentModal({ department, onClose, onSaved }) {
             style={{
               display: "block",
               marginBottom: 6,
-              fontSize: 11,
-              color: "#64748b",
-              fontWeight: 700,
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
+              fontSize: 12,
+              color: "#6b6b6b",
+              fontWeight: 400,
+              letterSpacing: "0",
             }}
           >
             Department Name

@@ -31,6 +31,10 @@ const NAV = [
     path: "/document-templates", label: "Document Templates", roles: ['admin'],
     icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 3h7l5 5v13a1 1 0 01-1 1H7a2 2 0 01-2-2V5a2 2 0 012-2z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 3v5h5M9 13h6M9 17h6M9 9h2" /></svg>,
   },
+  {
+    path: "/reports", label: "Reports", roles: ['admin'],
+    icon: <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 19V5m0 14h16M8 16V10m4 6V7m4 9V12" /></svg>,
+  },
 ];
 
 export default function MainLayout() {
@@ -39,15 +43,15 @@ export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const { logout, user } = useAuth();
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
-  const isDocumentTemplatesPage = location.pathname === "/document-templates";
+  const isWideAdminPage = location.pathname === "/document-templates" || location.pathname === "/reports";
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#f1f5f9" }}>
+    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#fff" }}>
 
       {/* Sidebar */}
       <aside style={{
         width: collapsed ? 64 : 220,
-        backgroundColor: "#003580",
+        backgroundColor: "#0f0f0f",
         display: "flex", flexDirection: "column",
         flexShrink: 0, transition: "width 0.2s ease",
         position: "sticky", top: 0, height: "100vh", overflow: "hidden",
@@ -56,16 +60,16 @@ export default function MainLayout() {
         <div style={{
           display: "flex", alignItems: "center", gap: 12,
           padding: "20px 16px",
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
           justifyContent: collapsed ? "center" : "flex-start",
         }}>
-          <div style={{
-            width: 32, height: 32, backgroundColor: "#1d6fc4", borderRadius: 8,
+        <div style={{
+            width: 32, height: 32, backgroundColor: "#1a1a1a", borderRadius: 8,
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff", fontWeight: 700, fontSize: 15, flexShrink: 0,
           }}>F</div>
           {!collapsed && (
-            <span style={{ color: "#fff", fontWeight: 700, fontSize: 16, whiteSpace: "nowrap" }}>
+            <span style={{ color: "#fff", fontWeight: 600, fontSize: 16, whiteSpace: "nowrap" }}>
               Flowlane
             </span>
           )}
@@ -85,12 +89,12 @@ export default function MainLayout() {
                   gap: 10, padding: "10px 12px", borderRadius: 8,
                   marginBottom: 4, textDecoration: "none",
                   justifyContent: collapsed ? "center" : "flex-start",
-                  backgroundColor: active ? "rgba(255,255,255,0.15)" : "transparent",
-                  color: active ? "#fff" : "rgba(147,197,253,0.9)",
+                  backgroundColor: "transparent",
+                  color: active ? "#fff" : "#a0a0a0",
                   fontSize: 14, fontWeight: active ? 600 : 400,
                 }}
-                onMouseEnter={e => { if (!active) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; }}
-                onMouseLeave={e => { if (!active) e.currentTarget.style.backgroundColor = active ? "rgba(255,255,255,0.15)" : "transparent"; }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.color = "#a0a0a0"; }}
               >
                 <span style={{ flexShrink: 0 }}>{item.icon}</span>
                 {!collapsed && <span>{item.label}</span>}
@@ -105,18 +109,18 @@ export default function MainLayout() {
           display: "flex", alignItems: "center", gap: 10,
           justifyContent: collapsed ? "center" : "flex-start",
         }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: "50%", backgroundColor: "#1d6fc4",
+        <div style={{
+            width: 32, height: 32, borderRadius: "50%", backgroundColor: "#1a1a1a",
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "#fff", fontSize: 12, fontWeight: 700, flexShrink: 0,
           }}>{initials}</div>
           {!collapsed && user && (
             <div style={{ overflow: "hidden" }}>
               <p style={{
-                color: "#fff", fontSize: 12, fontWeight: 600, margin: 0,
+                color: "#fff", fontSize: 12, fontWeight: 500, margin: 0,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130,
               }}>{user.email}</p>
-              <p style={{ color: "#93c5fd", fontSize: 11, textTransform: "capitalize", margin: 0 }}>
+              <p style={{ color: "#a0a0a0", fontSize: 11, textTransform: "capitalize", margin: 0 }}>
                 {user.role}
               </p>
             </div>
@@ -138,7 +142,7 @@ export default function MainLayout() {
             onClick={() => setCollapsed(c => !c)}
             style={{
               background: "none", border: "none", cursor: "pointer",
-              color: "#94a3b8", padding: 4, borderRadius: 4,
+              color: "#6b6b6b", padding: 4, borderRadius: 4,
               display: "flex", alignItems: "center",
             }}
           >
@@ -151,7 +155,7 @@ export default function MainLayout() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#64748b" }}>
               <span>{user?.email}</span>
               <span style={{
-                padding: "2px 10px", backgroundColor: "#eff6ff", color: "#1d4ed8",
+                padding: "2px 10px", backgroundColor: "#f5f5f5", color: "#111111",
                 borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: "capitalize",
               }}>{user?.role}</span>
             </div>
@@ -165,7 +169,7 @@ export default function MainLayout() {
                 border: "1.5px solid #e2e8f0", borderRadius: 8,
                 fontSize: 13, fontWeight: 600, color: "#475569", cursor: "pointer",
               }}
-              onMouseEnter={e => { e.target.style.borderColor = "#1d6fc4"; e.target.style.color = "#1d6fc4"; }}
+              onMouseEnter={e => { e.target.style.borderColor = "#111111"; e.target.style.color = "#111111"; }}
               onMouseLeave={e => { e.target.style.borderColor = "#e2e8f0"; e.target.style.color = "#475569"; }}
             >
               Sign out
@@ -174,8 +178,8 @@ export default function MainLayout() {
         </header>
 
         {/* Page content */}
-        <main style={{ flex: 1, padding: "32px", overflowY: "auto" }}>
-          <div style={{ maxWidth: isDocumentTemplatesPage ? 1420 : 960, margin: "0 auto" }}>
+        <main style={{ flex: 1, padding: "40px", overflowY: "auto", backgroundColor: "#fff" }}>
+          <div style={{ maxWidth: isWideAdminPage ? 1420 : 960, margin: "0 auto" }}>
             <Outlet />
           </div>
         </main>

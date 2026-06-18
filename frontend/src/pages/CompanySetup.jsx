@@ -4,7 +4,7 @@ import api from "../api/client";
 const inputStyle = {
   width: "100%",
   padding: "10px 14px",
-  border: "1.5px solid #cbd5e1",
+  border: "1px solid #e0e0e0",
   borderRadius: 8,
   fontSize: 14,
   color: "#1e293b",
@@ -15,11 +15,10 @@ const inputStyle = {
 
 const labelStyle = {
   display: "block",
-  fontSize: 11,
-  fontWeight: 700,
-  color: "#64748b",
-  letterSpacing: "1.5px",
-  textTransform: "uppercase",
+  fontSize: 12,
+  fontWeight: 400,
+  color: "#6b6b6b",
+  letterSpacing: "0",
   marginBottom: 6,
 };
 
@@ -47,7 +46,7 @@ function CompanySetupSkeleton() {
           key={section}
           style={{
             backgroundColor: "#fff",
-            border: "1px solid #e2e8f0",
+            border: "1px solid #efefef",
             borderRadius: 12,
             padding: 24,
           }}
@@ -55,7 +54,7 @@ function CompanySetupSkeleton() {
           <div style={{ width: 180, height: 18, borderRadius: 999, backgroundColor: "#e2e8f0", marginBottom: 18 }} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {[...Array(6)].map((_, index) => (
-              <div key={index} style={{ height: 42, borderRadius: 10, backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }} />
+              <div key={index} style={{ height: 42, borderRadius: 10, backgroundColor: "#f8fafc", border: "1px solid #efefef" }} />
             ))}
           </div>
         </section>
@@ -226,7 +225,7 @@ export default function CompanySetup() {
         <section
           style={{
             backgroundColor: "#fff",
-            border: "1px solid #e2e8f0",
+            border: "1px solid #efefef",
             borderRadius: 12,
             padding: 24,
           }}
@@ -295,7 +294,7 @@ export default function CompanySetup() {
         <section
           style={{
             backgroundColor: "#fff",
-            border: "1px solid #e2e8f0",
+            border: "1px solid #efefef",
             borderRadius: 12,
             padding: 24,
           }}
